@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --ink:#efe6d3;
@@ -180,6 +183,23 @@
   .row-actions{ display:flex; gap:6px; }
   .edit-badge{ font-family:var(--mono); font-size:.6rem; color:var(--gold); margin-left:6px; }
 
+  /* sync tab */
+  .sync-status{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:.8rem; margin-bottom:20px; }
+  .sync-dot{ width:9px; height:9px; border-radius:50%; background:var(--line); flex:0 0 auto; }
+  .sync-dot.on{ background:var(--teal); box-shadow:0 0 6px var(--teal); }
+  .sync-dot.off{ background:var(--rust); }
+  .sync-step-title{ font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); margin: 4px 0 10px; }
+  .sync-help{ font-family:var(--mono); font-size:.76rem; color:var(--ink-dim); line-height:1.7; margin-bottom:16px; }
+  .sync-help a{ color:var(--teal); }
+  .sync-help ol{ padding-left:18px; margin:8px 0; }
+  .sync-help li{ margin-bottom:6px; }
+  .sync-help code{ background:var(--bg-panel-2); padding:1px 5px; border-radius:2px; font-size:.72rem; }
+  textarea#fb-config{ min-height:90px; font-family:var(--mono); font-size:.75rem; }
+  .sync-error{ font-family:var(--mono); font-size:.75rem; color:var(--rust); margin-top:10px; display:none; }
+  .sync-error.show{ display:block; }
+  .sync-ok{ font-family:var(--mono); font-size:.75rem; color:var(--teal); margin-top:10px; display:none; }
+  .sync-ok.show{ display:block; }
+
   footer{ text-align:center; margin-top:50px; font-family:var(--mono); font-size:.65rem; color:var(--ink-dim); opacity:.6; }
 
   @media (max-width: 640px){
@@ -205,6 +225,7 @@
       <button id="tab-spin" class="active" onclick="showTab('spin')">Today's Spin</button>
       <button id="tab-log" onclick="showTab('log')">Listening Log</button>
       <button id="tab-edit" onclick="showTab('edit')">Edit Database</button>
+      <button id="tab-sync" onclick="showTab('sync')">Sync</button>
     </nav>
   </header>
 
@@ -295,7 +316,68 @@
     <div class="row-list" id="edit-list"></div>
   </section>
 
-  <footer>your data lives only in this browser's local storage &mdash; nothing leaves this file</footer>
+  <!-- SYNC VIEW -->
+  <section id="view-sync">
+    <div class="sync-status">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-status-text">Not connected &mdash; your data is only on this device.</span>
+    </div>
+
+    <div class="card" id="sync-setup-card">
+      <div class="sync-step-title">Step 1 &middot; Connect a Firebase project</div>
+      <div class="sync-help">
+        One-time setup (~10 min), free tier, only you can access your data once this is done.
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a> and create a project (Analytics can stay off).</li>
+          <li>Click the <code>&lt;/&gt;</code> (web app) icon to register a web app, then copy the <code>firebaseConfig</code> object it shows you.</li>
+          <li>In the left menu: <b>Build &rarr; Authentication &rarr; Get started</b>, then enable the <b>Email/Password</b> sign-in method.</li>
+          <li>In the left menu: <b>Build &rarr; Firestore Database &rarr; Create database</b>. Any region is fine.</li>
+          <li>In Firestore, open the <b>Rules</b> tab, replace the contents with the block below, and click <b>Publish</b>:</li>
+        </ol>
+        <textarea readonly style="min-height:120px;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}</textarea>
+      </div>
+      <label for="fb-config" style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin-bottom:8px;">Paste your firebaseConfig object here</label>
+      <textarea id="fb-config" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "...", ... }'></textarea>
+      <div class="btn-row">
+        <button class="big-btn" onclick="connectFirebase()">Connect</button>
+      </div>
+      <div class="sync-error" id="fb-config-error"></div>
+    </div>
+
+    <div class="card" id="sync-auth-card" style="display:none;">
+      <div class="sync-step-title">Step 2 &middot; Sign in</div>
+      <div class="sync-help">
+        Create one account the first time (on this device), then sign in with the same email and password on your other devices to see the same data everywhere.
+      </div>
+      <label for="fb-email">Email</label>
+      <input type="text" id="fb-email" placeholder="you@example.com">
+      <label for="fb-password" style="margin-top:14px;">Password</label>
+      <input type="text" id="fb-password" placeholder="at least 6 characters">
+      <div class="btn-row">
+        <button class="big-btn" onclick="fbSignIn()">Log in</button>
+        <button class="ghost-btn" onclick="fbSignUp()">Create account</button>
+      </div>
+      <div class="sync-error" id="fb-auth-error"></div>
+    </div>
+
+    <div class="card" id="sync-connected-card" style="display:none;">
+      <div class="sync-step-title">Connected</div>
+      <p style="font-family:var(--mono);font-size:.8rem;color:var(--ink-dim);" id="sync-account-line"></p>
+      <div class="btn-row">
+        <button class="ghost-btn" onclick="fbSignOut()">Log out of this device</button>
+        <button class="small-btn danger" onclick="forgetFirebaseConfig()">Disconnect &amp; forget config</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>your data is stored locally, and in your own Firebase project if you connect sync &mdash; nothing else has access to it</footer>
 </div>
 
 <script>
@@ -309,7 +391,11 @@ function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
   catch(e){ return fallback; }
 }
-function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+const SYNCED_KEYS = ['almanac_day','almanac_log','almanac_overrides','almanac_deleted','almanac_added'];
+function save(key, val){
+  localStorage.setItem(key, JSON.stringify(val));
+  if(SYNCED_KEYS.includes(key)) scheduleCloudPush();
+}
 
 let overrides = load('almanac_overrides', {});
 let deleted = load('almanac_deleted', []);
@@ -494,9 +580,11 @@ function showTab(which){
   document.getElementById('tab-spin').classList.toggle('active', which==='spin');
   document.getElementById('tab-log').classList.toggle('active', which==='log');
   document.getElementById('tab-edit').classList.toggle('active', which==='edit');
+  document.getElementById('tab-sync').classList.toggle('active', which==='sync');
   document.getElementById('view-spin').classList.toggle('active', which==='spin');
   document.getElementById('view-log').classList.toggle('active', which==='log');
   document.getElementById('view-edit').classList.toggle('active', which==='edit');
+  document.getElementById('view-sync').classList.toggle('active', which==='sync');
   if(which === 'log') renderLog();
   if(which === 'edit'){ populateMacroSelect(); renderEditList(); }
 }
@@ -700,6 +788,183 @@ function resetEdits(){
   renderEditList();
   renderSpin();
 }
+
+/* ---------- Cloud Sync (Firebase) ---------- */
+
+let fbApp = null, fbAuth = null, fbDb = null, fbUser = null, cloudReady = false;
+let unsubscribeSnapshot = null;
+let pushTimer = null;
+let applyingRemote = false;
+
+function setSyncStatus(text, state){
+  document.getElementById('sync-status-text').textContent = text;
+  const dot = document.getElementById('sync-dot');
+  dot.classList.remove('on','off');
+  if(state) dot.classList.add(state);
+}
+
+function showSyncCard(which){
+  document.getElementById('sync-setup-card').style.display = which==='setup' ? 'block':'none';
+  document.getElementById('sync-auth-card').style.display = which==='auth' ? 'block':'none';
+  document.getElementById('sync-connected-card').style.display = which==='connected' ? 'block':'none';
+}
+
+function parseFirebaseConfigInput(raw){
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if(start === -1 || end === -1) throw new Error('No { ... } object found in what you pasted.');
+  let body = raw.slice(start, end+1);
+  body = body.replace(/([{,]\s*)([A-Za-z0-9_$]+)\s*:/g, '$1"$2":');
+  body = body.replace(/'/g, '"');
+  body = body.replace(/,(\s*[}\]])/g, '$1');
+  return JSON.parse(body);
+}
+
+function initFirebaseFromConfig(configObj){
+  try{
+    fbApp = firebase.initializeApp(configObj);
+    fbAuth = firebase.auth();
+    fbDb = firebase.firestore();
+    fbAuth.onAuthStateChanged(user => {
+      if(user){
+        fbUser = user;
+        cloudReady = true;
+        setSyncStatus('Connected as ' + user.email, 'on');
+        document.getElementById('sync-account-line').textContent = 'Signed in as ' + user.email;
+        showSyncCard('connected');
+        subscribeCloud();
+      } else {
+        fbUser = null;
+        cloudReady = false;
+        if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+        setSyncStatus('Connected to Firebase \u2014 sign in to sync.', 'off');
+        showSyncCard('auth');
+      }
+    });
+    return true;
+  } catch(e){
+    const errEl = document.getElementById('fb-config-error');
+    errEl.textContent = 'Could not connect: ' + e.message;
+    errEl.classList.add('show');
+    return false;
+  }
+}
+
+function connectFirebase(){
+  const raw = document.getElementById('fb-config').value.trim();
+  const errEl = document.getElementById('fb-config-error');
+  errEl.classList.remove('show');
+  let configObj;
+  try{
+    configObj = parseFirebaseConfigInput(raw);
+  } catch(e){
+    errEl.textContent = 'Could not read that config: ' + e.message;
+    errEl.classList.add('show');
+    return;
+  }
+  if(initFirebaseFromConfig(configObj)){
+    localStorage.setItem('dial_fb_config', JSON.stringify(configObj));
+    showSyncCard('auth');
+  }
+}
+
+function fbSignUp(){
+  const email = document.getElementById('fb-email').value.trim();
+  const pw = document.getElementById('fb-password').value;
+  const errEl = document.getElementById('fb-auth-error');
+  errEl.classList.remove('show');
+  fbAuth.createUserWithEmailAndPassword(email, pw)
+    .catch(e => { errEl.textContent = e.message; errEl.classList.add('show'); });
+}
+
+function fbSignIn(){
+  const email = document.getElementById('fb-email').value.trim();
+  const pw = document.getElementById('fb-password').value;
+  const errEl = document.getElementById('fb-auth-error');
+  errEl.classList.remove('show');
+  fbAuth.signInWithEmailAndPassword(email, pw)
+    .catch(e => { errEl.textContent = e.message; errEl.classList.add('show'); });
+}
+
+function fbSignOut(){
+  if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+  fbAuth.signOut();
+}
+
+function forgetFirebaseConfig(){
+  if(!confirm('This disconnects cloud sync and forgets your Firebase config on this device. Your local listening log stays right where it is. Continue?')) return;
+  if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+  if(fbAuth) fbAuth.signOut();
+  localStorage.removeItem('dial_fb_config');
+  cloudReady = false; fbUser = null; fbApp = null;
+  setSyncStatus('Not connected \u2014 your data is only on this device.', null);
+  showSyncCard('setup');
+  document.getElementById('fb-config').value = '';
+}
+
+function subscribeCloud(){
+  if(unsubscribeSnapshot) unsubscribeSnapshot();
+  const ref = fbDb.collection('users').doc(fbUser.uid).collection('dial').doc('state');
+  unsubscribeSnapshot = ref.onSnapshot(snap => {
+    if(snap.exists){
+      applyCloudSnapshot(snap.data());
+    } else {
+      pushStateToCloud();
+    }
+  }, err => {
+    console.error('Sync error', err);
+    setSyncStatus('Sync error \u2014 check your Firestore rules.', 'off');
+  });
+}
+
+function applyCloudSnapshot(data){
+  applyingRemote = true;
+  if(data.log){ log = data.log; localStorage.setItem('almanac_log', JSON.stringify(log)); }
+  if(data.overrides){ overrides = data.overrides; localStorage.setItem('almanac_overrides', JSON.stringify(overrides)); }
+  if(data.deleted){ deleted = data.deleted; localStorage.setItem('almanac_deleted', JSON.stringify(deleted)); }
+  if(data.added){ added = data.added; localStorage.setItem('almanac_added', JSON.stringify(added)); }
+  if(data.day && data.day.date === todayStr()){
+    day = data.day;
+    localStorage.setItem('almanac_day', JSON.stringify(day));
+  }
+  rebuildAlbums();
+  if(document.getElementById('view-spin').classList.contains('active')){
+    if(!day.current || !ALBUMS.find(a=>a.id===day.current)) drawAlbum(false); else renderSpin();
+  }
+  if(document.getElementById('view-log').classList.contains('active')) renderLog();
+  if(document.getElementById('view-edit').classList.contains('active')) renderEditList();
+  applyingRemote = false;
+}
+
+function scheduleCloudPush(){
+  if(!cloudReady || applyingRemote) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushStateToCloud, 600);
+}
+
+function pushStateToCloud(){
+  if(!cloudReady || !fbUser) return;
+  const ref = fbDb.collection('users').doc(fbUser.uid).collection('dial').doc('state');
+  ref.set({
+    log: log, overrides: overrides, deleted: deleted, added: added, day: day,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(e => console.error('Cloud push failed', e));
+}
+
+(function initSyncOnLoad(){
+  const savedConfig = localStorage.getItem('dial_fb_config');
+  if(savedConfig){
+    try{
+      const configObj = JSON.parse(savedConfig);
+      document.getElementById('fb-config').value = JSON.stringify(configObj, null, 2);
+      showSyncCard('auth');
+      setSyncStatus('Connecting...', null);
+      initFirebaseFromConfig(configObj);
+    } catch(e){ showSyncCard('setup'); }
+  } else {
+    showSyncCard('setup');
+  }
+})();
 
 // init
 if(!day.current || !ALBUMS.find(a=>a.id===day.current)) drawAlbum(false);
