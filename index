@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Dial &mdash; a daily record spin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#efe6d3;
+    --ink-dim:#b9ac91;
+    --bg:#15130f;
+    --bg-panel:#1e1b16;
+    --bg-panel-2:#26221b;
+    --line: #3a352b;
+    --teal:#4f8b7a;
+    --teal-dim:#3a6a5c;
+    --gold:#d9a94c;
+    --rust:#c2542f;
+    --rust-dim:#8a3b21;
+    --radius: 3px;
+    --serif: 'Fraunces', Georgia, serif;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(217,169,76,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(79,139,122,0.10), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family: var(--serif);
+    min-height:100vh;
+    padding: 32px 20px 80px;
+  }
+  .wrap{ max-width: 780px; margin:0 auto; }
+
+  header{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:26px; border-bottom:1px solid var(--line); padding-bottom:16px;}
+  .brand{ display:flex; align-items:baseline; gap:12px;}
+  .brand h1{ font-size:1.7rem; font-weight:700; margin:0; letter-spacing:.01em;}
+  .brand .sub{ font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim); }
+  nav{ display:flex; gap:4px; font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; flex-wrap:wrap;}
+  nav button{
+    background:none; border:1px solid var(--line); color:var(--ink-dim);
+    padding:8px 14px; border-radius:var(--radius); cursor:pointer;
+  }
+  nav button.active{ color:var(--bg); background:var(--gold); border-color:var(--gold); }
+  nav button:not(.active):hover{ color:var(--ink); border-color:var(--ink-dim); }
+
+  section{ display:none; }
+  section.active{ display:block; animation: fadein .25s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .dial-row{ display:flex; align-items:center; gap:26px; margin-bottom: 16px; flex-wrap:wrap;}
+  .dial{ flex:0 0 auto; }
+  .dial svg{ display:block; }
+  .dial-label{ font-family:var(--mono); }
+  .dial-label .eyebrow{ font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-dim); display:block; margin-bottom:6px;}
+  .dial-label .year{ font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--gold); line-height:1;}
+  .dial-label .count{ font-size:.72rem; color:var(--ink-dim); margin-top:6px; }
+
+  .year-facts{ list-style:none; margin: 0 0 22px; padding:0; font-family:var(--mono); font-size:.78rem; color:var(--ink-dim); line-height:1.7; border-left:2px solid var(--teal-dim); padding-left:14px;}
+  .year-facts li::before{ content:"\2014  "; color:var(--teal); }
+
+  .card{ background:var(--bg-panel); border:1px solid var(--line); border-radius:6px; padding:26px; margin-bottom:22px; }
+  .empty-card{ text-align:center; padding:44px 20px; color:var(--ink-dim); font-family:var(--mono); font-size:.85rem; }
+  .empty-card .big-btn{ margin-top:18px; }
+
+  .record{ display:flex; gap:20px; align-items:center; }
+  .record-art{
+    flex:0 0 86px; width:86px; height:86px; border-radius:50%; overflow:hidden;
+    background: repeating-radial-gradient(circle at center, #0c0b09 0 3px, #201c15 3px 6px);
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .record-art::after{
+    content:""; position:absolute; inset:0; margin:auto; width:20px; height:20px; border-radius:50%;
+    background:var(--rust); box-shadow: inset 0 0 0 3px #15130f; pointer-events:none;
+  }
+  .record-art.has-cover::after{ display:none; }
+  .record-art.has-cover{ background:none; }
+  .record-art img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .record-art.spinning{ animation: spin 1.1s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .record-meta .genre-tag{
+    display:inline-block; font-family:var(--mono); font-size:.65rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--teal); border:1px solid var(--teal-dim); padding:3px 8px; border-radius:20px; margin-bottom:8px;
+  }
+  .record-meta .subgenre-tag{
+    display:inline-block; font-family:var(--mono); font-size:.65rem; letter-spacing:.05em;
+    color:var(--ink-dim); padding:3px 2px; margin-bottom:8px; margin-left:4px;
+  }
+  .record-meta h2{ margin:0 0 4px; font-size:1.4rem; line-height:1.25;}
+  .record-meta .artist{ margin:0; color:var(--ink-dim); font-size:1rem; }
+  .record-meta .release-date{ font-family:var(--mono); font-size:.68rem; color:var(--ink-dim); opacity:.8; margin-top:8px;}
+
+  .btn-row{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  button.big-btn{
+    font-family:var(--mono); text-transform:uppercase; letter-spacing:.08em; font-size:.78rem;
+    background:var(--teal); color:#0e1512; border:none; padding:12px 18px; border-radius:var(--radius);
+    cursor:pointer; font-weight:600;
+  }
+  button.big-btn:hover{ background:#5e9c8a; }
+  button.ghost-btn{
+    font-family:var(--mono); text-transform:uppercase; letter-spacing:.08em; font-size:.78rem;
+    background:none; color:var(--ink-dim); border:1px solid var(--line); padding:12px 18px; border-radius:var(--radius);
+    cursor:pointer;
+  }
+  button.ghost-btn:hover{ color:var(--ink); border-color:var(--ink-dim); }
+  button.small-btn{
+    font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; font-size:.65rem;
+    background:none; color:var(--ink-dim); border:1px solid var(--line); padding:6px 10px; border-radius:var(--radius); cursor:pointer;
+  }
+  button.small-btn:hover{ color:var(--ink); border-color:var(--ink-dim); }
+  button.small-btn.danger:hover{ color:var(--rust); border-color:var(--rust-dim); }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .review-form label{ display:block; font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); margin: 18px 0 8px;}
+  .review-form label:first-child{ margin-top:6px; }
+  .stars{ display:flex; gap:6px; }
+  .stars button{ background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--line); padding:0; }
+  .stars button.filled{ color:var(--gold); }
+  .stars button:hover{ color:var(--gold); }
+  input[type=text], input[type=number], input[type=date], textarea, select{
+    width:100%; background:var(--bg-panel-2); border:1px solid var(--line); color:var(--ink);
+    font-family: var(--serif); font-size:.95rem; padding:10px 12px; border-radius:var(--radius); resize:vertical;
+  }
+  textarea{ min-height:80px; }
+  input:focus, textarea:focus, select:focus, button:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
+
+  .saved-note{ font-family:var(--mono); font-size:.75rem; color:var(--teal); margin-top:14px; display:none; }
+  .saved-note.show{ display:block; }
+
+  .log-stats{ display:flex; gap:26px; flex-wrap:wrap; margin-bottom:22px; font-family:var(--mono); }
+  .log-stats .n{ font-family:var(--serif); font-size:1.6rem; color:var(--gold); font-weight:700; }
+  .log-stats .lab{ font-size:.65rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); }
+
+  .log-controls, .edit-controls{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+  .log-controls input, .log-controls select, .edit-controls input, .edit-controls select{
+    background:var(--bg-panel-2); border:1px solid var(--line); color:var(--ink); font-family:var(--mono);
+    font-size:.78rem; padding:9px 11px; border-radius:var(--radius); width:auto;
+  }
+
+  .entry{ border:1px solid var(--line); border-radius:6px; background:var(--bg-panel); padding:18px 20px; margin-bottom:12px; }
+  .entry-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .entry-date{ font-family:var(--mono); font-size:.68rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em; }
+  .entry-stars{ color:var(--gold); font-size:.85rem; letter-spacing:1px; }
+  .entry h3{ margin:6px 0 2px; font-size:1.15rem; }
+  .entry .artist-year{ color:var(--ink-dim); font-size:.88rem; margin:0 0 10px; }
+  .entry .genre-tag{
+    display:inline-block; font-family:var(--mono); font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--teal); border:1px solid var(--teal-dim); padding:2px 7px; border-radius:20px; margin-bottom:10px;
+  }
+  .entry .subgenre-tag{
+    display:inline-block; font-family:var(--mono); font-size:.6rem; color:var(--ink-dim); margin-left:4px; margin-bottom:10px;
+  }
+  .entry .fav{ font-family:var(--mono); font-size:.78rem; color:var(--ink-dim); margin: 6px 0; }
+  .entry .fav b{ color:var(--ink); font-weight:600; }
+  .entry p.review{ margin: 8px 0 0; line-height:1.5; }
+  .no-entries{ text-align:center; color:var(--ink-dim); font-family:var(--mono); padding:50px 0; font-size:.85rem; }
+
+  /* edit database */
+  .edit-intro{ font-family:var(--mono); font-size:.78rem; color:var(--ink-dim); line-height:1.6; margin-bottom:20px; }
+  .add-form{ display:grid; grid-template-columns: 80px 1fr 1fr 130px 130px 140px auto; gap:8px; align-items:end; margin-bottom:10px;}
+  .add-form label{ font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim); display:block; margin-bottom:4px;}
+  .row-list{ margin-top:8px; }
+  .row-item{
+    display:grid; grid-template-columns: 50px 1fr 1fr 100px 100px 110px auto; gap:8px; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:.9rem;
+  }
+  .row-item .rlabel{ font-family:var(--mono); font-size:.6rem; text-transform:uppercase; color:var(--ink-dim); display:none; }
+  .row-item.editing{ background:var(--bg-panel-2); border-radius:var(--radius); padding:10px; }
+  .row-item .yr{ font-family:var(--mono); color:var(--ink-dim); }
+  .row-item .gn{ font-family:var(--mono); font-size:.72rem; color:var(--teal); }
+  .row-item .rd{ font-family:var(--mono); font-size:.72rem; color:var(--ink-dim); }
+  .row-actions{ display:flex; gap:6px; }
+  .edit-badge{ font-family:var(--mono); font-size:.6rem; color:var(--gold); margin-left:6px; }
+
+  footer{ text-align:center; margin-top:50px; font-family:var(--mono); font-size:.65rem; color:var(--ink-dim); opacity:.6; }
+
+  @media (max-width: 640px){
+    .add-form, .row-item{ grid-template-columns: 1fr; }
+    .row-item .rlabel{ display:inline; }
+  }
+  @media (max-width: 520px){
+    .dial-row{ flex-direction:column; align-items:flex-start; }
+    .record{ flex-direction:column; align-items:flex-start; }
+    .log-stats{ gap:18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>The Dial</h1>
+      <span class="sub">one record a day / 1966&ndash;2026</span>
+    </div>
+    <nav>
+      <button id="tab-spin" class="active" onclick="showTab('spin')">Today's Spin</button>
+      <button id="tab-log" onclick="showTab('log')">Listening Log</button>
+      <button id="tab-edit" onclick="showTab('edit')">Edit Database</button>
+    </nav>
+  </header>
+
+  <!-- SPIN VIEW -->
+  <section id="view-spin" class="active">
+    <div class="dial-row">
+      <div class="dial">
+        <svg width="92" height="92" viewBox="0 0 92 92">
+          <circle cx="46" cy="46" r="43" fill="none" stroke="#3a352b" stroke-width="2"/>
+          <circle cx="46" cy="46" r="43" fill="none" stroke="#d9a94c" stroke-width="2" stroke-dasharray="4 7" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="4" fill="#c2542f"/>
+        </svg>
+      </div>
+      <div class="dial-label">
+        <span class="eyebrow">Today's year</span>
+        <span class="year" id="year-display">&mdash;</span>
+        <div class="count" id="year-count"></div>
+      </div>
+    </div>
+
+    <ul class="year-facts" id="year-facts"></ul>
+
+    <div class="card" id="record-card"></div>
+
+    <div class="card" id="review-card" style="display:none;">
+      <div class="review-form">
+        <label>Rating</label>
+        <div class="stars" id="stars">
+          <button type="button" data-v="1">&#9733;</button>
+          <button type="button" data-v="2">&#9733;</button>
+          <button type="button" data-v="3">&#9733;</button>
+          <button type="button" data-v="4">&#9733;</button>
+          <button type="button" data-v="5">&#9733;</button>
+        </div>
+        <label for="fav-tracks">Favorite track(s)</label>
+        <input type="text" id="fav-tracks" placeholder="e.g. track 3, the title track...">
+        <label for="review-text">Notes / short review</label>
+        <textarea id="review-text" placeholder="What stood out? What didn't land?"></textarea>
+        <div class="btn-row">
+          <button class="big-btn" onclick="saveEntry()">Log this listen</button>
+        </div>
+        <div class="saved-note" id="saved-note">Logged &mdash; a new record from this year is queued up above.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOG VIEW -->
+  <section id="view-log">
+    <div class="log-stats" id="log-stats"></div>
+    <div class="log-controls">
+      <input type="text" id="log-search" placeholder="search artist / album..." oninput="renderLog()">
+      <select id="log-sort" onchange="renderLog()">
+        <option value="date-desc">Newest listened</option>
+        <option value="date-asc">Oldest listened</option>
+        <option value="year-desc">Album year (new&rarr;old)</option>
+        <option value="year-asc">Album year (old&rarr;new)</option>
+        <option value="rating-desc">Highest rated</option>
+      </select>
+    </div>
+    <div id="log-list"></div>
+  </section>
+
+  <!-- EDIT DATABASE VIEW -->
+  <section id="view-edit">
+    <p class="edit-intro">
+      This is the full album database behind the tool &mdash; 431 records across 1966&ndash;2026.
+      Fix a typo, correct a release date, remove something you don't want suggested, or add albums of your own.
+      Everything here is saved to this browser only. <button class="small-btn danger" onclick="resetEdits()">Reset all my edits</button>
+    </p>
+
+    <div class="card">
+      <label style="font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);display:block;margin-bottom:10px;">Add an album</label>
+      <div class="add-form">
+        <div><label>Year</label><input type="number" id="new-year" min="1966" max="2026" placeholder="1994"></div>
+        <div><label>Artist</label><input type="text" id="new-artist" placeholder="Nas"></div>
+        <div><label>Title</label><input type="text" id="new-title" placeholder="Illmatic"></div>
+        <div><label>Category</label><select id="new-macro"></select></div>
+        <div><label>Subgenre</label><input type="text" id="new-genre" placeholder="e.g. East Coast Hip-Hop"></div>
+        <div><label>Release date</label><input type="date" id="new-date"></div>
+        <div><button class="big-btn" onclick="addAlbum()">Add</button></div>
+      </div>
+    </div>
+
+    <div class="edit-controls">
+      <select id="edit-year-filter" onchange="renderEditList()"><option value="">All years</option></select>
+      <input type="text" id="edit-search" placeholder="search artist / album..." oninput="renderEditList()">
+    </div>
+    <div class="row-list" id="edit-list"></div>
+  </section>
+
+  <footer>your data lives only in this browser's local storage &mdash; nothing leaves this file</footer>
+</div>
+
+<script>
+const BASE_ALBUMS = [{"id": "a0001", "year": 1966, "artist": "The Beatles", "title": "Revolver", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1966-08-05"}, {"id": "a0002", "year": 1966, "artist": "The Beach Boys", "title": "Pet Sounds", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1966-05-16"}, {"id": "a0003", "year": 1966, "artist": "Bob Dylan", "title": "Blonde on Blonde", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1966-06-20"}, {"id": "a0004", "year": 1966, "artist": "John Coltrane", "title": "Ascension", "genre": "Free Jazz", "genreMacro": "Jazz", "releaseDate": null}, {"id": "a0005", "year": 1966, "artist": "Simon & Garfunkel", "title": "Parsley, Sage, Rosemary and Thyme", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "1966-10-10"}, {"id": "a0006", "year": 1966, "artist": "The Kinks", "title": "Face to Face", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1966-10-28"}, {"id": "a0007", "year": 1967, "artist": "The Beatles", "title": "Sgt. Pepper's Lonely Hearts Club Band", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1967-05-26"}, {"id": "a0008", "year": 1967, "artist": "The Velvet Underground", "title": "The Velvet Underground & Nico", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1967-03-12"}, {"id": "a0009", "year": 1967, "artist": "The Jimi Hendrix Experience", "title": "Are You Experienced", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1967-05-12"}, {"id": "a0010", "year": 1967, "artist": "Love", "title": "Forever Changes", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1967-11-01"}, {"id": "a0011", "year": 1967, "artist": "The Doors", "title": "The Doors", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1967-01-04"}, {"id": "a0012", "year": 1967, "artist": "Aretha Franklin", "title": "I Never Loved a Man the Way I Love You", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1967-03-10"}, {"id": "a0013", "year": 1968, "artist": "The Beatles", "title": "The Beatles (White Album)", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1968-11-22"}, {"id": "a0014", "year": 1968, "artist": "Van Morrison", "title": "Astral Weeks", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "1968-11-01"}, {"id": "a0015", "year": 1968, "artist": "The Kinks", "title": "The Kinks Are the Village Green Preservation Society", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1968-11-22"}, {"id": "a0016", "year": 1968, "artist": "Miles Davis", "title": "Miles in the Sky", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1968-07-01"}, {"id": "a0017", "year": 1968, "artist": "Sly and the Family Stone", "title": "Dance to the Music", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1968-04-27"}, {"id": "a0018", "year": 1968, "artist": "Os Mutantes", "title": "Os Mutantes", "genre": "Tropicalia", "genreMacro": "Latin", "releaseDate": null}, {"id": "a0019", "year": 1968, "artist": "Johnny Cash", "title": "At Folsom Prison", "genre": "Country", "genreMacro": "Country", "releaseDate": "1968-05-06"}, {"id": "a0020", "year": 1969, "artist": "The Beatles", "title": "Abbey Road", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1969-09-26"}, {"id": "a0021", "year": 1969, "artist": "King Crimson", "title": "In the Court of the Crimson King", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1969-10-10"}, {"id": "a0022", "year": 1969, "artist": "Miles Davis", "title": "In a Silent Way", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1969-07-30"}, {"id": "a0023", "year": 1969, "artist": "The Stooges", "title": "The Stooges", "genre": "Proto-Punk", "genreMacro": "Rock", "releaseDate": "1969-08-05"}, {"id": "a0024", "year": 1969, "artist": "Sly and the Family Stone", "title": "Stand!", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1969-05-03"}, {"id": "a0025", "year": 1969, "artist": "Nick Drake", "title": "Five Leaves Left", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "1969-07-03"}, {"id": "a0026", "year": 1969, "artist": "Pharoah Sanders", "title": "Karma", "genre": "Spiritual Jazz", "genreMacro": "Jazz", "releaseDate": "1969-02-01"}, {"id": "a0027", "year": 1970, "artist": "Black Sabbath", "title": "Paranoid", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1970-09-18"}, {"id": "a0028", "year": 1970, "artist": "Miles Davis", "title": "Bitches Brew", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1970-03-30"}, {"id": "a0029", "year": 1970, "artist": "Neil Young", "title": "After the Gold Rush", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1970-09-19"}, {"id": "a0030", "year": 1970, "artist": "James Brown", "title": "Sex Machine", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1970-07-25"}, {"id": "a0031", "year": 1970, "artist": "Curtis Mayfield", "title": "Curtis", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1970-09-01"}, {"id": "a0032", "year": 1970, "artist": "Van Morrison", "title": "Moondance", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1970-01-01"}, {"id": "a0033", "year": 1970, "artist": "Loretta Lynn", "title": "Coal Miner's Daughter", "genre": "Country", "genreMacro": "Country", "releaseDate": "1970-10-26"}, {"id": "a0034", "year": 1971, "artist": "Marvin Gaye", "title": "What's Going On", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1971-05-21"}, {"id": "a0035", "year": 1971, "artist": "Led Zeppelin", "title": "Led Zeppelin IV", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1971-11-08"}, {"id": "a0036", "year": 1971, "artist": "Joni Mitchell", "title": "Blue", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1971-06-22"}, {"id": "a0037", "year": 1971, "artist": "Can", "title": "Tago Mago", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": null}, {"id": "a0038", "year": 1971, "artist": "The Who", "title": "Who's Next", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1971-08-14"}, {"id": "a0039", "year": 1971, "artist": "Sly and the Family Stone", "title": "There's a Riot Goin' On", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1971-11-20"}, {"id": "a0040", "year": 1971, "artist": "Dolly Parton", "title": "Coat of Many Colors", "genre": "Country", "genreMacro": "Country", "releaseDate": "1971-10-06"}, {"id": "a0041", "year": 1971, "artist": "Ornette Coleman", "title": "Science Fiction", "genre": "Free Jazz", "genreMacro": "Jazz", "releaseDate": "1971-08-01"}, {"id": "a0042", "year": 1972, "artist": "Stevie Wonder", "title": "Talking Book", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1972-10-27"}, {"id": "a0043", "year": 1972, "artist": "Big Star", "title": "#1 Record", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1972-06-01"}, {"id": "a0044", "year": 1972, "artist": "Neu!", "title": "Neu!", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": null}, {"id": "a0045", "year": 1972, "artist": "David Bowie", "title": "The Rise and Fall of Ziggy Stardust", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1972-06-16"}, {"id": "a0046", "year": 1972, "artist": "Curtis Mayfield", "title": "Super Fly", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1972-07-12"}, {"id": "a0047", "year": 1972, "artist": "Alice Coltrane", "title": "Journey in Satchidananda", "genre": "Spiritual Jazz", "genreMacro": "Jazz", "releaseDate": null}, {"id": "a0048", "year": 1972, "artist": "Mulatu Astatke", "title": "Mulatu of Ethiopia", "genre": "Ethio-Jazz", "genreMacro": "African", "releaseDate": null}, {"id": "a0049", "year": 1973, "artist": "Pink Floyd", "title": "The Dark Side of the Moon", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1973-03-01"}, {"id": "a0050", "year": 1973, "artist": "Fela Kuti", "title": "Gentleman", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": null}, {"id": "a0051", "year": 1973, "artist": "Stevie Wonder", "title": "Innervisions", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1973-08-03"}, {"id": "a0052", "year": 1973, "artist": "New York Dolls", "title": "New York Dolls", "genre": "Proto-Punk", "genreMacro": "Rock", "releaseDate": "1973-07-27"}, {"id": "a0053", "year": 1973, "artist": "Herbie Hancock", "title": "Head Hunters", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1973-10-13"}, {"id": "a0054", "year": 1973, "artist": "Gram Parsons", "title": "GP", "genre": "Country Rock", "genreMacro": "Country", "releaseDate": "1973-01-01"}, {"id": "a0055", "year": 1973, "artist": "Waylon Jennings", "title": "Honky Tonk Heroes", "genre": "Outlaw Country", "genreMacro": "Country", "releaseDate": "1973-05-01"}, {"id": "a0056", "year": 1973, "artist": "The Wailers", "title": "Catch a Fire", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1973-04-13"}, {"id": "a0057", "year": 1974, "artist": "Joni Mitchell", "title": "Court and Spark", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1974-01-17"}, {"id": "a0058", "year": 1974, "artist": "Kraftwerk", "title": "Autobahn", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1974-11-01"}, {"id": "a0059", "year": 1974, "artist": "Bob Marley and the Wailers", "title": "Natty Dread", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1974-10-25"}, {"id": "a0060", "year": 1974, "artist": "Big Star", "title": "Radio City", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1974-02-01"}, {"id": "a0061", "year": 1974, "artist": "Neil Young", "title": "On the Beach", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1974-07-19"}, {"id": "a0062", "year": 1974, "artist": "Gil Scott-Heron", "title": "Winter in America", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": null}, {"id": "a0063", "year": 1975, "artist": "Bob Dylan", "title": "Blood on the Tracks", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1975-01-20"}, {"id": "a0064", "year": 1975, "artist": "Bruce Springsteen", "title": "Born to Run", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1975-08-25"}, {"id": "a0065", "year": 1975, "artist": "Patti Smith", "title": "Horses", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1975-11-10"}, {"id": "a0066", "year": 1975, "artist": "Kraftwerk", "title": "Radio-Activity", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1975-11-01"}, {"id": "a0067", "year": 1975, "artist": "Earth, Wind & Fire", "title": "That's the Way of the World", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1975-03-15"}, {"id": "a0068", "year": 1975, "artist": "Willie Nelson", "title": "Red Headed Stranger", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-05-23"}, {"id": "a0069", "year": 1975, "artist": "Emmylou Harris", "title": "Pieces of the Sky", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-02-01"}, {"id": "a0070", "year": 1975, "artist": "Burning Spear", "title": "Marcus Garvey", "genre": "Roots Reggae", "genreMacro": "Reggae", "releaseDate": "1975-09-01"}, {"id": "a0071", "year": 1976, "artist": "The Ramones", "title": "Ramones", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1976-04-23"}, {"id": "a0072", "year": 1976, "artist": "Stevie Wonder", "title": "Songs in the Key of Life", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1976-09-28"}, {"id": "a0073", "year": 1976, "artist": "Fela Kuti", "title": "Zombie", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": null}, {"id": "a0074", "year": 1976, "artist": "Parliament", "title": "Mothership Connection", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1976-12-15"}, {"id": "a0075", "year": 1976, "artist": "Rush", "title": "2112", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1976-04-01"}, {"id": "a0076", "year": 1976, "artist": "Joni Mitchell", "title": "Hejira", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1976-11-22"}, {"id": "a0077", "year": 1976, "artist": "Philip Glass", "title": "Einstein on the Beach", "genre": "Minimalism", "genreMacro": "Classical", "releaseDate": "1976-11-21"}, {"id": "a0078", "year": 1976, "artist": "Peter Tosh", "title": "Legalize It", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1976-04-01"}, {"id": "a0079", "year": 1976, "artist": "Selda Bagcan", "title": "Selda", "genre": "Turkish Psych Folk", "genreMacro": "Middle Eastern", "releaseDate": null}, {"id": "a0080", "year": 1977, "artist": "The Clash", "title": "The Clash", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1977-04-08"}, {"id": "a0081", "year": 1977, "artist": "Fleetwood Mac", "title": "Rumours", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1977-02-04"}, {"id": "a0082", "year": 1977, "artist": "David Bowie", "title": "Low", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1977-01-14"}, {"id": "a0083", "year": 1977, "artist": "Kraftwerk", "title": "Trans-Europe Express", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1977-03-01"}, {"id": "a0084", "year": 1977, "artist": "Television", "title": "Marquee Moon", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1977-02-08"}, {"id": "a0085", "year": 1977, "artist": "Bob Marley and the Wailers", "title": "Exodus", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1977-06-03"}, {"id": "a0086", "year": 1977, "artist": "Weather Report", "title": "Heavy Weather", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1977-03-02"}, {"id": "a0087", "year": 1978, "artist": "Kate Bush", "title": "The Kick Inside", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1978-02-17"}, {"id": "a0088", "year": 1978, "artist": "Talking Heads", "title": "More Songs About Buildings and Food", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1978-07-14"}, {"id": "a0089", "year": 1978, "artist": "Wire", "title": "Chairs Missing", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1978-09-01"}, {"id": "a0090", "year": 1978, "artist": "Van Halen", "title": "Van Halen", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1978-02-10"}, {"id": "a0091", "year": 1978, "artist": "Funkadelic", "title": "One Nation Under a Groove", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1978-09-08"}, {"id": "a0092", "year": 1978, "artist": "Steve Reich", "title": "Music for 18 Musicians", "genre": "Minimalism", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0093", "year": 1978, "artist": "Steel Pulse", "title": "Handsworth Revolution", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1978-05-01"}, {"id": "a0094", "year": 1979, "artist": "Michael Jackson", "title": "Off the Wall", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1979-08-10"}, {"id": "a0095", "year": 1979, "artist": "Talking Heads", "title": "Fear of Music", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1979-08-03"}, {"id": "a0096", "year": 1979, "artist": "Joy Division", "title": "Unknown Pleasures", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1979-06-15"}, {"id": "a0097", "year": 1979, "artist": "Pink Floyd", "title": "The Wall", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1979-11-30"}, {"id": "a0098", "year": 1979, "artist": "Gang of Four", "title": "Entertainment!", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1979-09-01"}, {"id": "a0099", "year": 1979, "artist": "Donna Summer", "title": "Bad Girls", "genre": "Disco", "genreMacro": "Funk & Soul", "releaseDate": "1979-04-25"}, {"id": "a0100", "year": 1980, "artist": "Talking Heads", "title": "Remain in Light", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1980-10-08"}, {"id": "a0101", "year": 1980, "artist": "Joy Division", "title": "Closer", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1980-07-18"}, {"id": "a0102", "year": 1980, "artist": "Peter Gabriel", "title": "Peter Gabriel (III)", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1980-05-30"}, {"id": "a0103", "year": 1980, "artist": "Prince", "title": "Dirty Mind", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1980-10-08"}, {"id": "a0104", "year": 1980, "artist": "Black Uhuru", "title": "Sinsemilla", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": null}, {"id": "a0105", "year": 1980, "artist": "Killing Joke", "title": "Killing Joke", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1980-08-01"}, {"id": "a0106", "year": 1980, "artist": "George Jones", "title": "I Am What I Am", "genre": "Country", "genreMacro": "Country", "releaseDate": "1980-05-01"}, {"id": "a0107", "year": 1981, "artist": "The Human League", "title": "Dare", "genre": "Synth-Pop", "genreMacro": "Pop", "releaseDate": "1981-10-16"}, {"id": "a0108", "year": 1981, "artist": "X", "title": "Los Angeles", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1981-04-01"}, {"id": "a0109", "year": 1981, "artist": "Kraftwerk", "title": "Computer World", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1981-05-01"}, {"id": "a0110", "year": 1981, "artist": "Rush", "title": "Moving Pictures", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1981-02-12"}, {"id": "a0111", "year": 1981, "artist": "Grace Jones", "title": "Nightclubbing", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1981-05-01"}, {"id": "a0112", "year": 1981, "artist": "Fela Kuti", "title": "Coffin for Head of State", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": null}, {"id": "a0113", "year": 1981, "artist": "Meredith Monk", "title": "Dolmen Music", "genre": "Avant-Garde Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0114", "year": 1982, "artist": "Michael Jackson", "title": "Thriller", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1982-11-30"}, {"id": "a0115", "year": 1982, "artist": "Prince", "title": "1999", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1982-10-27"}, {"id": "a0116", "year": 1982, "artist": "Grandmaster Flash and the Furious Five", "title": "The Message", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1982-07-01"}, {"id": "a0117", "year": 1982, "artist": "Bruce Springsteen", "title": "Nebraska", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1982-09-30"}, {"id": "a0118", "year": 1982, "artist": "Iron Maiden", "title": "The Number of the Beast", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1982-03-22"}, {"id": "a0119", "year": 1982, "artist": "Laurie Anderson", "title": "Big Science", "genre": "Avant-Garde", "genreMacro": "Classical", "releaseDate": "1982-04-19"}, {"id": "a0120", "year": 1982, "artist": "Orchestra Baobab", "title": "Pirates Choice", "genre": "Mbalax", "genreMacro": "African", "releaseDate": null}, {"id": "a0121", "year": 1982, "artist": "Yellowman", "title": "Mister Yellowman", "genre": "Dancehall", "genreMacro": "Reggae", "releaseDate": null}, {"id": "a0122", "year": 1982, "artist": "Pat Metheny Group", "title": "Offramp", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1982-01-01"}, {"id": "a0123", "year": 1983, "artist": "New Order", "title": "Power, Corruption & Lies", "genre": "Synth-Pop", "genreMacro": "Pop", "releaseDate": "1983-05-02"}, {"id": "a0124", "year": 1983, "artist": "Metallica", "title": "Kill 'Em All", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1983-07-25"}, {"id": "a0125", "year": 1983, "artist": "R.E.M.", "title": "Murmur", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1983-04-12"}, {"id": "a0126", "year": 1983, "artist": "Talking Heads", "title": "Speaking in Tongues", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1983-06-01"}, {"id": "a0127", "year": 1983, "artist": "Cocteau Twins", "title": "Head Over Heels", "genre": "Dream Pop", "genreMacro": "Pop", "releaseDate": "1983-10-14"}, {"id": "a0128", "year": 1983, "artist": "King Sunny Ade", "title": "Synchro System", "genre": "Juju", "genreMacro": "African", "releaseDate": "1983-01-01"}, {"id": "a0129", "year": 1984, "artist": "Prince", "title": "Purple Rain", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1984-06-25"}, {"id": "a0130", "year": 1984, "artist": "Run-D.M.C.", "title": "Run-D.M.C.", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1984-03-27"}, {"id": "a0131", "year": 1984, "artist": "Cocteau Twins", "title": "Treasure", "genre": "Dream Pop", "genreMacro": "Pop", "releaseDate": "1984-11-19"}, {"id": "a0132", "year": 1984, "artist": "Minutemen", "title": "Double Nickels on the Dime", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1984-07-01"}, {"id": "a0133", "year": 1984, "artist": "Bruce Springsteen", "title": "Born in the U.S.A.", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1984-06-04"}, {"id": "a0134", "year": 1984, "artist": "Meat Puppets", "title": "Meat Puppets II", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1984-04-01"}, {"id": "a0135", "year": 1984, "artist": "Arvo Part", "title": "Tabula Rasa", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0136", "year": 1984, "artist": "Youssou N'Dour", "title": "Immigres", "genre": "Mbalax", "genreMacro": "African", "releaseDate": null}, {"id": "a0137", "year": 1984, "artist": "Ofra Haza", "title": "Yemenite Songs", "genre": "Yemenite Jewish", "genreMacro": "Middle Eastern", "releaseDate": null}, {"id": "a0138", "year": 1985, "artist": "Kate Bush", "title": "Hounds of Love", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1985-09-16"}, {"id": "a0139", "year": 1985, "artist": "Sonic Youth", "title": "Bad Moon Rising", "genre": "Noise Rock", "genreMacro": "Rock", "releaseDate": "1985-11-01"}, {"id": "a0140", "year": 1985, "artist": "Tom Waits", "title": "Rain Dogs", "genre": "Experimental", "genreMacro": "Rock", "releaseDate": "1985-09-30"}, {"id": "a0141", "year": 1985, "artist": "Whitney Houston", "title": "Whitney Houston", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1985-02-14"}, {"id": "a0142", "year": 1985, "artist": "New Order", "title": "Low-Life", "genre": "Synth-Pop", "genreMacro": "Pop", "releaseDate": "1985-05-13"}, {"id": "a0143", "year": 1985, "artist": "Metallica", "title": "Ride the Lightning", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1984-07-27"}, {"id": "a0144", "year": 1985, "artist": "John Adams", "title": "Harmonielehre", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0145", "year": 1986, "artist": "Paul Simon", "title": "Graceland", "genre": "World/Pop", "genreMacro": "R&B", "releaseDate": "1986-08-25"}, {"id": "a0146", "year": 1986, "artist": "Run-D.M.C.", "title": "Raising Hell", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1986-05-15"}, {"id": "a0147", "year": 1986, "artist": "Slayer", "title": "Reign in Blood", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1986-10-07"}, {"id": "a0148", "year": 1986, "artist": "The Smiths", "title": "The Queen Is Dead", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1986-06-16"}, {"id": "a0149", "year": 1986, "artist": "Beastie Boys", "title": "Licensed to Ill", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1986-11-15"}, {"id": "a0150", "year": 1986, "artist": "Janet Jackson", "title": "Control", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1986-02-04"}, {"id": "a0151", "year": 1986, "artist": "Dwight Yoakam", "title": "Guitars, Cadillacs, Etc., Etc.", "genre": "Country", "genreMacro": "Country", "releaseDate": "1986-03-19"}, {"id": "a0152", "year": 1987, "artist": "Public Enemy", "title": "Yo! Bum Rush the Show", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1987-02-10"}, {"id": "a0153", "year": 1987, "artist": "U2", "title": "The Joshua Tree", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1987-03-09"}, {"id": "a0154", "year": 1987, "artist": "Prince", "title": "Sign o' the Times", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1987-03-31"}, {"id": "a0155", "year": 1987, "artist": "Guns N' Roses", "title": "Appetite for Destruction", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1987-07-21"}, {"id": "a0156", "year": 1987, "artist": "Sonic Youth", "title": "Sister", "genre": "Noise Rock", "genreMacro": "Rock", "releaseDate": "1987-06-01"}, {"id": "a0157", "year": 1987, "artist": "Pixies", "title": "Come On Pilgrim", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1987-10-05"}, {"id": "a0158", "year": 1987, "artist": "Ali Farka Toure", "title": "Ali Farka Toure", "genre": "Desert Blues", "genreMacro": "African", "releaseDate": null}, {"id": "a0159", "year": 1988, "artist": "Public Enemy", "title": "It Takes a Nation of Millions to Hold Us Back", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1988-06-28"}, {"id": "a0160", "year": 1988, "artist": "N.W.A", "title": "Straight Outta Compton", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1988-08-08"}, {"id": "a0161", "year": 1988, "artist": "Pixies", "title": "Surfer Rosa", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1988-03-21"}, {"id": "a0162", "year": 1988, "artist": "My Bloody Valentine", "title": "Isn't Anything", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "1988-11-21"}, {"id": "a0163", "year": 1988, "artist": "Talk Talk", "title": "Spirit of Eden", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "1988-09-12"}, {"id": "a0164", "year": 1988, "artist": "Tracy Chapman", "title": "Tracy Chapman", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "1988-04-05"}, {"id": "a0165", "year": 1988, "artist": "Steve Reich", "title": "Different Trains", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0166", "year": 1989, "artist": "De La Soul", "title": "3 Feet High and Rising", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1989-03-03"}, {"id": "a0167", "year": 1989, "artist": "The Stone Roses", "title": "The Stone Roses", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1989-05-02"}, {"id": "a0168", "year": 1989, "artist": "Nine Inch Nails", "title": "Pretty Hate Machine", "genre": "Industrial", "genreMacro": "Electronic", "releaseDate": "1989-10-20"}, {"id": "a0169", "year": 1989, "artist": "Beastie Boys", "title": "Paul's Boutique", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1989-07-25"}, {"id": "a0170", "year": 1989, "artist": "Nirvana", "title": "Bleach", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1989-06-15"}, {"id": "a0171", "year": 1989, "artist": "Kate Bush", "title": "The Sensual World", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1989-10-16"}, {"id": "a0172", "year": 1990, "artist": "A Tribe Called Quest", "title": "People's Instinctive Travels and the Paths of Rhythm", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1990-04-10"}, {"id": "a0173", "year": 1990, "artist": "Sinead O'Connor", "title": "I Do Not Want What I Haven't Got", "genre": "Alt Pop", "genreMacro": "Pop", "releaseDate": "1990-03-20"}, {"id": "a0174", "year": 1990, "artist": "Fugazi", "title": "Repeater", "genre": "Post-Hardcore", "genreMacro": "Punk", "releaseDate": "1990-04-01"}, {"id": "a0175", "year": 1990, "artist": "Depeche Mode", "title": "Violator", "genre": "Synth-Pop", "genreMacro": "Pop", "releaseDate": "1990-03-19"}, {"id": "a0176", "year": 1990, "artist": "Public Enemy", "title": "Fear of a Black Planet", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1990-04-10"}, {"id": "a0177", "year": 1990, "artist": "Sonic Youth", "title": "Goo", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1990-06-26"}, {"id": "a0178", "year": 1990, "artist": "Garth Brooks", "title": "No Fences", "genre": "Country", "genreMacro": "Country", "releaseDate": "1990-08-27"}, {"id": "a0179", "year": 1990, "artist": "John Zorn", "title": "Naked City", "genre": "Avant-Jazz", "genreMacro": "Jazz", "releaseDate": "1990-01-01"}, {"id": "a0180", "year": 1991, "artist": "Nirvana", "title": "Nevermind", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1991-09-24"}, {"id": "a0181", "year": 1991, "artist": "My Bloody Valentine", "title": "Loveless", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "1991-11-04"}, {"id": "a0182", "year": 1991, "artist": "A Tribe Called Quest", "title": "The Low End Theory", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1991-09-24"}, {"id": "a0183", "year": 1991, "artist": "Massive Attack", "title": "Blue Lines", "genre": "Trip-Hop", "genreMacro": "Electronic", "releaseDate": "1991-04-08"}, {"id": "a0184", "year": 1991, "artist": "Pearl Jam", "title": "Ten", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1991-08-27"}, {"id": "a0185", "year": 1991, "artist": "Primal Scream", "title": "Screamadelica", "genre": "Alt/Electronic", "genreMacro": "Electronic", "releaseDate": "1991-09-23"}, {"id": "a0186", "year": 1991, "artist": "Shabba Ranks", "title": "As Raw As Ever", "genre": "Dancehall", "genreMacro": "Reggae", "releaseDate": "1991-01-01"}, {"id": "a0187", "year": 1992, "artist": "Dr. Dre", "title": "The Chronic", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1992-12-15"}, {"id": "a0188", "year": 1992, "artist": "Rage Against the Machine", "title": "Rage Against the Machine", "genre": "Rap Metal", "genreMacro": "Metal", "releaseDate": "1992-11-03"}, {"id": "a0189", "year": 1992, "artist": "R.E.M.", "title": "Automatic for the People", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1992-10-05"}, {"id": "a0190", "year": 1992, "artist": "Pavement", "title": "Slanted and Enchanted", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1992-04-20"}, {"id": "a0191", "year": 1992, "artist": "Aphex Twin", "title": "Selected Ambient Works 85-92", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1992-11-09"}, {"id": "a0192", "year": 1992, "artist": "PJ Harvey", "title": "Dry", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1992-03-01"}, {"id": "a0193", "year": 1992, "artist": "Cheb Khaled", "title": "Khaled", "genre": "Rai", "genreMacro": "Middle Eastern", "releaseDate": "1992-01-01"}, {"id": "a0194", "year": 1992, "artist": "Henryk Gorecki", "title": "Symphony No. 3 (Symphony of Sorrowful Songs)", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": "1992-05-01"}, {"id": "a0195", "year": 1993, "artist": "Wu-Tang Clan", "title": "Enter the Wu-Tang (36 Chambers)", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1993-11-09"}, {"id": "a0196", "year": 1993, "artist": "PJ Harvey", "title": "Rid of Me", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1993-05-04"}, {"id": "a0197", "year": 1993, "artist": "Bjork", "title": "Debut", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1993-07-05"}, {"id": "a0198", "year": 1993, "artist": "Liz Phair", "title": "Exile in Guyville", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1993-06-22"}, {"id": "a0199", "year": 1993, "artist": "Snoop Dogg", "title": "Doggystyle", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1993-11-23"}, {"id": "a0200", "year": 1993, "artist": "Slowdive", "title": "Souvlaki", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "1993-06-01"}, {"id": "a0201", "year": 1993, "artist": "Cassandra Wilson", "title": "Blue Light 'Til Dawn", "genre": "Vocal Jazz", "genreMacro": "Jazz", "releaseDate": "1993-05-04"}, {"id": "a0202", "year": 1994, "artist": "Nas", "title": "Illmatic", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1994-04-19"}, {"id": "a0203", "year": 1994, "artist": "Portishead", "title": "Dummy", "genre": "Trip-Hop", "genreMacro": "Electronic", "releaseDate": "1994-08-22"}, {"id": "a0204", "year": 1994, "artist": "Nine Inch Nails", "title": "The Downward Spiral", "genre": "Industrial", "genreMacro": "Electronic", "releaseDate": "1994-03-08"}, {"id": "a0205", "year": 1994, "artist": "The Notorious B.I.G.", "title": "Ready to Die", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1994-09-13"}, {"id": "a0206", "year": 1994, "artist": "Weezer", "title": "Weezer (Blue Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1994-05-10"}, {"id": "a0207", "year": 1994, "artist": "Oasis", "title": "Definitely Maybe", "genre": "Britpop", "genreMacro": "Rock", "releaseDate": "1994-08-29"}, {"id": "a0208", "year": 1995, "artist": "Radiohead", "title": "The Bends", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1995-03-13"}, {"id": "a0209", "year": 1995, "artist": "Mobb Deep", "title": "The Infamous", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1995-04-25"}, {"id": "a0210", "year": 1995, "artist": "Bjork", "title": "Post", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1995-06-12"}, {"id": "a0211", "year": 1995, "artist": "Alice in Chains", "title": "Alice in Chains", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1995-11-07"}, {"id": "a0212", "year": 1995, "artist": "Elliott Smith", "title": "Elliott Smith", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1995-07-21"}, {"id": "a0213", "year": 1995, "artist": "Goldie", "title": "Timeless", "genre": "Drum and Bass", "genreMacro": "Electronic", "releaseDate": "1995-09-25"}, {"id": "a0214", "year": 1995, "artist": "Buju Banton", "title": "'Til Shiloh", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1995-06-06"}, {"id": "a0215", "year": 1996, "artist": "DJ Shadow", "title": "Endtroducing.....", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1996-09-16"}, {"id": "a0216", "year": 1996, "artist": "Fugees", "title": "The Score", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1996-02-13"}, {"id": "a0217", "year": 1996, "artist": "Tool", "title": "AEnima", "genre": "Prog Metal", "genreMacro": "Metal", "releaseDate": "1996-09-17"}, {"id": "a0218", "year": 1996, "artist": "Belle and Sebastian", "title": "If You're Feeling Sinister", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "1996-11-18"}, {"id": "a0219", "year": 1996, "artist": "Beck", "title": "Odelay", "genre": "Alt/Experimental", "genreMacro": "Rock", "releaseDate": "1996-06-18"}, {"id": "a0220", "year": 1996, "artist": "Manic Street Preachers", "title": "Everything Must Go", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1996-05-20"}, {"id": "a0221", "year": 1997, "artist": "Radiohead", "title": "OK Computer", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1997-06-16"}, {"id": "a0222", "year": 1997, "artist": "Wu-Tang Clan", "title": "Wu-Tang Forever", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-06-03"}, {"id": "a0223", "year": 1997, "artist": "Bjork", "title": "Homogenic", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1997-09-22"}, {"id": "a0224", "year": 1997, "artist": "Missy Elliott", "title": "Supa Dupa Fly", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-07-15"}, {"id": "a0225", "year": 1997, "artist": "Spiritualized", "title": "Ladies and Gentlemen We Are Floating in Space", "genre": "Space Rock", "genreMacro": "Rock", "releaseDate": "1997-06-16"}, {"id": "a0226", "year": 1997, "artist": "Portishead", "title": "Portishead", "genre": "Trip-Hop", "genreMacro": "Electronic", "releaseDate": "1997-09-29"}, {"id": "a0227", "year": 1997, "artist": "Shania Twain", "title": "Come On Over", "genre": "Country", "genreMacro": "Country", "releaseDate": "1997-11-04"}, {"id": "a0228", "year": 1998, "artist": "Lauryn Hill", "title": "The Miseducation of Lauryn Hill", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "1998-08-25"}, {"id": "a0229", "year": 1998, "artist": "Neutral Milk Hotel", "title": "In the Aeroplane Over the Sea", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1998-02-10"}, {"id": "a0230", "year": 1998, "artist": "Air", "title": "Moon Safari", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1998-01-16"}, {"id": "a0231", "year": 1998, "artist": "Massive Attack", "title": "Mezzanine", "genre": "Trip-Hop", "genreMacro": "Electronic", "releaseDate": "1998-04-20"}, {"id": "a0232", "year": 1998, "artist": "OutKast", "title": "Aquemini", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1998-09-29"}, {"id": "a0233", "year": 1998, "artist": "Cornelius", "title": "Fantasma", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "1998-04-08"}, {"id": "a0234", "year": 1998, "artist": "The Chicks", "title": "Wide Open Spaces", "genre": "Country", "genreMacro": "Country", "releaseDate": "1998-01-27"}, {"id": "a0235", "year": 1998, "artist": "Anouar Brahem", "title": "Thimar", "genre": "Middle Eastern Jazz", "genreMacro": "Middle Eastern", "releaseDate": "1998-01-01"}, {"id": "a0236", "year": 1998, "artist": "Angelique Kidjo", "title": "Oremi", "genre": "Afropop", "genreMacro": "African", "releaseDate": "1998-01-01"}, {"id": "a0237", "year": 1999, "artist": "The Flaming Lips", "title": "The Soft Bulletin", "genre": "Indie/Psych Pop", "genreMacro": "Pop", "releaseDate": "1999-05-17"}, {"id": "a0238", "year": 1999, "artist": "Rage Against the Machine", "title": "The Battle of Los Angeles", "genre": "Rap Metal", "genreMacro": "Metal", "releaseDate": "1999-11-02"}, {"id": "a0239", "year": 1999, "artist": "Mos Def", "title": "Black on Both Sides", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1999-10-12"}, {"id": "a0240", "year": 1999, "artist": "Sigur Ros", "title": "Agaetis byrjun", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "1999-06-12"}, {"id": "a0241", "year": 1999, "artist": "The Dismemberment Plan", "title": "Emergency & I", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1999-10-26"}, {"id": "a0242", "year": 1999, "artist": "Blink-182", "title": "Enema of the State", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1999-06-01"}, {"id": "a0243", "year": 1999, "artist": "Tony Allen", "title": "Black Voices", "genre": "Afrobeat/Jazz", "genreMacro": "African", "releaseDate": "1999-01-01"}, {"id": "a0244", "year": 2000, "artist": "Radiohead", "title": "Kid A", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2000-10-02"}, {"id": "a0245", "year": 2000, "artist": "OutKast", "title": "Stankonia", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2000-10-31"}, {"id": "a0246", "year": 2000, "artist": "PJ Harvey", "title": "Stories from the City, Stories from the Sea", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2000-10-24"}, {"id": "a0247", "year": 2000, "artist": "Modest Mouse", "title": "The Moon & Antarctica", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2000-06-13"}, {"id": "a0248", "year": 2000, "artist": "D'Angelo", "title": "Voodoo", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2000-01-25"}, {"id": "a0249", "year": 2000, "artist": "Deltron 3030", "title": "Deltron 3030", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2000-10-10"}, {"id": "a0250", "year": 2001, "artist": "Daft Punk", "title": "Discovery", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2001-03-12"}, {"id": "a0251", "year": 2001, "artist": "Bob Dylan", "title": "Love and Theft", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "2001-09-11"}, {"id": "a0252", "year": 2001, "artist": "The Strokes", "title": "Is This It", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2001-07-30"}, {"id": "a0253", "year": 2001, "artist": "Jay-Z", "title": "The Blueprint", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-09-11"}, {"id": "a0254", "year": 2001, "artist": "Aphex Twin", "title": "Drukqs", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2001-10-22"}, {"id": "a0255", "year": 2001, "artist": "System of a Down", "title": "Toxicity", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "2001-09-04"}, {"id": "a0256", "year": 2001, "artist": "Femi Kuti", "title": "Fight to Win", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": "2001-09-11"}, {"id": "a0257", "year": 2002, "artist": "Wilco", "title": "Yankee Hotel Foxtrot", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2002-04-23"}, {"id": "a0258", "year": 2002, "artist": "The Streets", "title": "Original Pirate Material", "genre": "UK Garage/Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2002-03-25"}, {"id": "a0259", "year": 2002, "artist": "Sigur Ros", "title": "()", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "2002-11-04"}, {"id": "a0260", "year": 2002, "artist": "Missy Elliott", "title": "Under Construction", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2002-11-12"}, {"id": "a0261", "year": 2002, "artist": "Interpol", "title": "Turn on the Bright Lights", "genre": "Post-Punk Revival", "genreMacro": "Rock", "releaseDate": "2002-08-20"}, {"id": "a0262", "year": 2002, "artist": "Beck", "title": "Sea Change", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2002-09-24"}, {"id": "a0263", "year": 2002, "artist": "Brad Mehldau", "title": "Largo", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2002-09-17"}, {"id": "a0264", "year": 2003, "artist": "The White Stripes", "title": "Elephant", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2003-04-01"}, {"id": "a0265", "year": 2003, "artist": "OutKast", "title": "Speakerboxxx/The Love Below", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2003-09-23"}, {"id": "a0266", "year": 2003, "artist": "The Rapture", "title": "Echoes", "genre": "Dance-Punk", "genreMacro": "Electronic", "releaseDate": "2003-09-09"}, {"id": "a0267", "year": 2003, "artist": "Broken Social Scene", "title": "You Forgot It in People", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2003-05-05"}, {"id": "a0268", "year": 2003, "artist": "50 Cent", "title": "Get Rich or Die Tryin'", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2003-02-06"}, {"id": "a0269", "year": 2003, "artist": "My Morning Jacket", "title": "It Still Moves", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2003-08-26"}, {"id": "a0270", "year": 2004, "artist": "Arcade Fire", "title": "Funeral", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2004-09-14"}, {"id": "a0271", "year": 2004, "artist": "Madvillain", "title": "Madvillainy", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2004-03-23"}, {"id": "a0272", "year": 2004, "artist": "Kanye West", "title": "The College Dropout", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2004-02-10"}, {"id": "a0273", "year": 2004, "artist": "Animal Collective", "title": "Sung Tongs", "genre": "Experimental Folk", "genreMacro": "Folk", "releaseDate": "2004-05-11"}, {"id": "a0274", "year": 2004, "artist": "The Streets", "title": "A Grand Don't Come for Free", "genre": "UK Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2004-05-10"}, {"id": "a0275", "year": 2004, "artist": "Franz Ferdinand", "title": "Franz Ferdinand", "genre": "Post-Punk Revival", "genreMacro": "Rock", "releaseDate": "2004-02-09"}, {"id": "a0276", "year": 2004, "artist": "Amadou & Mariam", "title": "Dimanche a Bamako", "genre": "Afropop", "genreMacro": "African", "releaseDate": "2004-09-13"}, {"id": "a0277", "year": 2004, "artist": "Max Richter", "title": "The Blue Notebooks", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": "2004-04-19"}, {"id": "a0278", "year": 2005, "artist": "Sufjan Stevens", "title": "Illinois", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2005-07-04"}, {"id": "a0279", "year": 2005, "artist": "Kanye West", "title": "Late Registration", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2005-08-30"}, {"id": "a0280", "year": 2005, "artist": "M.I.A.", "title": "Arular", "genre": "Global Bass", "genreMacro": "Electronic", "releaseDate": "2005-04-19"}, {"id": "a0281", "year": 2005, "artist": "Sleater-Kinney", "title": "The Woods", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2005-05-24"}, {"id": "a0282", "year": 2005, "artist": "Fiona Apple", "title": "Extraordinary Machine", "genre": "Alt Pop", "genreMacro": "Pop", "releaseDate": "2005-10-04"}, {"id": "a0283", "year": 2005, "artist": "Bloc Party", "title": "Silent Alarm", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2005-02-14"}, {"id": "a0284", "year": 2005, "artist": "Damian Marley", "title": "Welcome to Jamrock", "genre": "Reggae/Dancehall", "genreMacro": "Reggae", "releaseDate": "2005-09-13"}, {"id": "a0285", "year": 2006, "artist": "Joanna Newsom", "title": "Ys", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2006-11-14"}, {"id": "a0286", "year": 2006, "artist": "TV on the Radio", "title": "Return to Cookie Mountain", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2006-07-11"}, {"id": "a0287", "year": 2006, "artist": "The Knife", "title": "Silent Shout", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2006-09-15"}, {"id": "a0288", "year": 2006, "artist": "Ghostface Killah", "title": "Fishscale", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2006-03-28"}, {"id": "a0289", "year": 2006, "artist": "Bob Dylan", "title": "Modern Times", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "2006-08-29"}, {"id": "a0290", "year": 2006, "artist": "Beirut", "title": "Gulag Orkestar", "genre": "World/Indie", "genreMacro": "World", "releaseDate": "2006-05-09"}, {"id": "a0291", "year": 2006, "artist": "Johann Johannsson", "title": "IBM 1401, A User's Manual", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0292", "year": 2007, "artist": "Radiohead", "title": "In Rainbows", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2007-10-10"}, {"id": "a0293", "year": 2007, "artist": "Panda Bear", "title": "Person Pitch", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "2007-03-20"}, {"id": "a0294", "year": 2007, "artist": "Kanye West", "title": "Graduation", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2007-09-11"}, {"id": "a0295", "year": 2007, "artist": "M.I.A.", "title": "Kala", "genre": "Global Bass", "genreMacro": "Electronic", "releaseDate": "2007-08-21"}, {"id": "a0296", "year": 2007, "artist": "Burial", "title": "Untrue", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2007-11-05"}, {"id": "a0297", "year": 2007, "artist": "LCD Soundsystem", "title": "Sound of Silver", "genre": "Dance-Punk", "genreMacro": "Electronic", "releaseDate": "2007-03-12"}, {"id": "a0298", "year": 2007, "artist": "Vieux Farka Toure", "title": "Vieux Farka Toure", "genre": "Desert Blues", "genreMacro": "African", "releaseDate": "2007-02-27"}, {"id": "a0299", "year": 2008, "artist": "Fleet Foxes", "title": "Fleet Foxes", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2008-06-03"}, {"id": "a0300", "year": 2008, "artist": "Vampire Weekend", "title": "Vampire Weekend", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2008-01-29"}, {"id": "a0301", "year": 2008, "artist": "Portishead", "title": "Third", "genre": "Trip-Hop", "genreMacro": "Electronic", "releaseDate": "2008-04-28"}, {"id": "a0302", "year": 2008, "artist": "Lil Wayne", "title": "Tha Carter III", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2008-06-10"}, {"id": "a0303", "year": 2008, "artist": "Deerhunter", "title": "Microcastle", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "2008-10-28"}, {"id": "a0304", "year": 2008, "artist": "TV on the Radio", "title": "Dear Science", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2008-09-23"}, {"id": "a0305", "year": 2008, "artist": "Nico Muhly", "title": "Mothertongue", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": "2008-09-09"}, {"id": "a0306", "year": 2009, "artist": "Animal Collective", "title": "Merriweather Post Pavilion", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "2009-01-06"}, {"id": "a0307", "year": 2009, "artist": "Dirty Projectors", "title": "Bitte Orca", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2009-06-09"}, {"id": "a0308", "year": 2009, "artist": "Grizzly Bear", "title": "Veckatimest", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2009-05-26"}, {"id": "a0309", "year": 2009, "artist": "Raekwon", "title": "Only Built 4 Cuban Linx... Pt. II", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2009-09-08"}, {"id": "a0310", "year": 2009, "artist": "Fever Ray", "title": "Fever Ray", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2009-01-20"}, {"id": "a0311", "year": 2009, "artist": "Kid Cudi", "title": "Man on the Moon: The End of Day", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2009-09-15"}, {"id": "a0312", "year": 2010, "artist": "Kanye West", "title": "My Beautiful Dark Twisted Fantasy", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2010-11-22"}, {"id": "a0313", "year": 2010, "artist": "LCD Soundsystem", "title": "This Is Happening", "genre": "Dance-Punk", "genreMacro": "Electronic", "releaseDate": "2010-05-18"}, {"id": "a0314", "year": 2010, "artist": "Sufjan Stevens", "title": "The Age of Adz", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2010-10-12"}, {"id": "a0315", "year": 2010, "artist": "The National", "title": "High Violet", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2010-05-11"}, {"id": "a0316", "year": 2010, "artist": "Janelle Monae", "title": "The ArchAndroid", "genre": "R&B/Funk", "genreMacro": "R&B", "releaseDate": "2010-05-18"}, {"id": "a0317", "year": 2010, "artist": "Beach House", "title": "Teen Dream", "genre": "Dream Pop", "genreMacro": "Pop", "releaseDate": "2010-01-26"}, {"id": "a0318", "year": 2010, "artist": "Esperanza Spalding", "title": "Chamber Music Society", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2010-08-17"}, {"id": "a0319", "year": 2011, "artist": "Kendrick Lamar", "title": "Section.80", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2011-07-02"}, {"id": "a0320", "year": 2011, "artist": "Bon Iver", "title": "Bon Iver", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2011-06-17"}, {"id": "a0321", "year": 2011, "artist": "James Blake", "title": "James Blake", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2011-02-07"}, {"id": "a0322", "year": 2011, "artist": "tUnE-yArDs", "title": "w h o k i l l", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "2011-04-19"}, {"id": "a0323", "year": 2011, "artist": "Fleet Foxes", "title": "Helplessness Blues", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2011-05-03"}, {"id": "a0324", "year": 2011, "artist": "Death Grips", "title": "Exmilitary", "genre": "Experimental Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2011-04-21"}, {"id": "a0325", "year": 2012, "artist": "Kendrick Lamar", "title": "good kid, m.A.A.d city", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2012-10-22"}, {"id": "a0326", "year": 2012, "artist": "Frank Ocean", "title": "channel ORANGE", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2012-07-10"}, {"id": "a0327", "year": 2012, "artist": "Grimes", "title": "Visions", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2012-01-31"}, {"id": "a0328", "year": 2012, "artist": "Godspeed You! Black Emperor", "title": "Allelujah! Don't Bend! Ascend!", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "2012-10-16"}, {"id": "a0329", "year": 2012, "artist": "Death Grips", "title": "The Money Store", "genre": "Experimental Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2012-04-24"}, {"id": "a0330", "year": 2012, "artist": "Fiona Apple", "title": "The Idler Wheel...", "genre": "Alt Pop", "genreMacro": "Pop", "releaseDate": "2012-06-19"}, {"id": "a0331", "year": 2012, "artist": "Robert Glasper Experiment", "title": "Black Radio", "genre": "Jazz/R&B", "genreMacro": "R&B", "releaseDate": "2012-02-28"}, {"id": "a0332", "year": 2013, "artist": "Kanye West", "title": "Yeezus", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2013-06-18"}, {"id": "a0333", "year": 2013, "artist": "Daft Punk", "title": "Random Access Memories", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2013-05-17"}, {"id": "a0334", "year": 2013, "artist": "Vampire Weekend", "title": "Modern Vampires of the City", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2013-05-14"}, {"id": "a0335", "year": 2013, "artist": "Danny Brown", "title": "Old", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2013-10-08"}, {"id": "a0336", "year": 2013, "artist": "Arcade Fire", "title": "Reflektor", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2013-10-28"}, {"id": "a0337", "year": 2013, "artist": "My Bloody Valentine", "title": "m b v", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "2013-02-02"}, {"id": "a0338", "year": 2013, "artist": "Bombino", "title": "Nomad", "genre": "Tuareg Rock", "genreMacro": "African", "releaseDate": "2013-04-09"}, {"id": "a0339", "year": 2013, "artist": "Omar Souleyman", "title": "Wenu Wenu", "genre": "Dabke/Electro", "genreMacro": "Middle Eastern", "releaseDate": "2013-10-21"}, {"id": "a0340", "year": 2013, "artist": "Kayhan Kalhor & Erdal Erzincan", "title": "Kula Kulluk Yakisir Mi", "genre": "Persian/Turkish Classical", "genreMacro": "Middle Eastern", "releaseDate": "2013-08-27"}, {"id": "a0341", "year": 2014, "artist": "D'Angelo and The Vanguard", "title": "Black Messiah", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2014-12-15"}, {"id": "a0342", "year": 2014, "artist": "Run the Jewels", "title": "Run the Jewels 2", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2014-10-24"}, {"id": "a0343", "year": 2014, "artist": "St. Vincent", "title": "St. Vincent", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2014-02-24"}, {"id": "a0344", "year": 2014, "artist": "FKA twigs", "title": "LP1", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": "2014-08-06"}, {"id": "a0345", "year": 2014, "artist": "Swans", "title": "To Be Kind", "genre": "Experimental", "genreMacro": "Rock", "releaseDate": "2014-05-13"}, {"id": "a0346", "year": 2014, "artist": "Sun Kil Moon", "title": "Benji", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2014-02-04"}, {"id": "a0347", "year": 2014, "artist": "Sturgill Simpson", "title": "Metamodern Sounds in Country Music", "genre": "Country", "genreMacro": "Country", "releaseDate": "2014-05-13"}, {"id": "a0348", "year": 2015, "artist": "Kendrick Lamar", "title": "To Pimp a Butterfly", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2015-03-15"}, {"id": "a0349", "year": 2015, "artist": "Sufjan Stevens", "title": "Carrie & Lowell", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2015-03-31"}, {"id": "a0350", "year": 2015, "artist": "Tame Impala", "title": "Currents", "genre": "Psych Pop", "genreMacro": "Pop", "releaseDate": "2015-07-17"}, {"id": "a0351", "year": 2015, "artist": "Bjork", "title": "Vulnicura", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2015-01-20"}, {"id": "a0352", "year": 2015, "artist": "Kamasi Washington", "title": "The Epic", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2015-05-05"}, {"id": "a0353", "year": 2015, "artist": "Jamie xx", "title": "In Colour", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2015-05-29"}, {"id": "a0354", "year": 2015, "artist": "Roomful of Teeth", "title": "Caroline Shaw: Partita for 8 Voices", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null}, {"id": "a0355", "year": 2015, "artist": "Mashrou' Leila", "title": "Ibn El Leil", "genre": "Arabic Indie", "genreMacro": "Middle Eastern", "releaseDate": "2015-05-19"}, {"id": "a0356", "year": 2016, "artist": "Frank Ocean", "title": "Blonde", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2016-08-20"}, {"id": "a0357", "year": 2016, "artist": "David Bowie", "title": "Blackstar", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2016-01-08"}, {"id": "a0358", "year": 2016, "artist": "Beyonce", "title": "Lemonade", "genre": "R&B/Pop", "genreMacro": "R&B", "releaseDate": "2016-04-23"}, {"id": "a0359", "year": 2016, "artist": "Angel Olsen", "title": "My Woman", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2016-09-02"}, {"id": "a0360", "year": 2016, "artist": "Danny Brown", "title": "Atrocity Exhibition", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2016-09-30"}, {"id": "a0361", "year": 2016, "artist": "A Tribe Called Quest", "title": "We Got It from Here... Thank You 4 Your Service", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2016-11-11"}, {"id": "a0362", "year": 2016, "artist": "Chris Stapleton", "title": "Traveller", "genre": "Country", "genreMacro": "Country", "releaseDate": "2015-05-05"}, {"id": "a0363", "year": 2017, "artist": "Kendrick Lamar", "title": "DAMN.", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2017-04-14"}, {"id": "a0364", "year": 2017, "artist": "SZA", "title": "Ctrl", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2017-06-09"}, {"id": "a0365", "year": 2017, "artist": "Slowdive", "title": "Slowdive", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "2017-05-05"}, {"id": "a0366", "year": 2017, "artist": "Kelela", "title": "Take Me Apart", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": "2017-10-06"}, {"id": "a0367", "year": 2017, "artist": "Tyler, the Creator", "title": "Flower Boy", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2017-07-21"}, {"id": "a0368", "year": 2017, "artist": "Fever Ray", "title": "Plunge", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2017-11-17"}, {"id": "a0369", "year": 2017, "artist": "Tyler Childers", "title": "Purgatory", "genre": "Country", "genreMacro": "Country", "releaseDate": "2017-08-04"}, {"id": "a0370", "year": 2018, "artist": "Kacey Musgraves", "title": "Golden Hour", "genre": "Country", "genreMacro": "Country", "releaseDate": "2018-03-30"}, {"id": "a0371", "year": 2018, "artist": "Mitski", "title": "Be the Cowboy", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2018-08-17"}, {"id": "a0372", "year": 2018, "artist": "Pusha T", "title": "Daytona", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2018-05-25"}, {"id": "a0373", "year": 2018, "artist": "Janelle Monae", "title": "Dirty Computer", "genre": "R&B/Funk", "genreMacro": "R&B", "releaseDate": "2018-04-27"}, {"id": "a0374", "year": 2018, "artist": "Low", "title": "Double Negative", "genre": "Experimental", "genreMacro": "Rock", "releaseDate": "2018-09-14"}, {"id": "a0375", "year": 2018, "artist": "Tierra Whack", "title": "Whack World", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2018-05-10"}, {"id": "a0376", "year": 2018, "artist": "Makaya McCraven", "title": "Universal Beings", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2018-11-09"}, {"id": "a0377", "year": 2019, "artist": "Vampire Weekend", "title": "Father of the Bride", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2019-05-03"}, {"id": "a0378", "year": 2019, "artist": "Billie Eilish", "title": "When We All Fall Asleep, Where Do We Go?", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "2019-03-29"}, {"id": "a0379", "year": 2019, "artist": "Big Thief", "title": "Two Hands", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2019-10-11"}, {"id": "a0380", "year": 2019, "artist": "Danny Brown", "title": "uknowhatimsayin¿", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2019-10-04"}, {"id": "a0381", "year": 2019, "artist": "FKA twigs", "title": "Magdalene", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": "2019-11-08"}, {"id": "a0382", "year": 2019, "artist": "Weyes Blood", "title": "Titanic Rising", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2019-04-05"}, {"id": "a0383", "year": 2019, "artist": "Burna Boy", "title": "African Giant", "genre": "Afrobeats", "genreMacro": "African", "releaseDate": "2019-07-26"}, {"id": "a0384", "year": 2019, "artist": "Altin Gun", "title": "Gece", "genre": "Anatolian Psych Rock", "genreMacro": "Middle Eastern", "releaseDate": "2019-02-22"}, {"id": "a0385", "year": 2020, "artist": "Fiona Apple", "title": "Fetch the Bolt Cutters", "genre": "Alt/Experimental", "genreMacro": "Rock", "releaseDate": "2020-04-17"}, {"id": "a0386", "year": 2020, "artist": "Run the Jewels", "title": "RTJ4", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2020-06-03"}, {"id": "a0387", "year": 2020, "artist": "Bad Bunny", "title": "YHLQMDLG", "genre": "Reggaeton", "genreMacro": "Reggae", "releaseDate": "2020-02-29"}, {"id": "a0388", "year": 2020, "artist": "Phoebe Bridgers", "title": "Punisher", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2020-06-18"}, {"id": "a0389", "year": 2020, "artist": "Yves Tumor", "title": "Heaven to a Tortured Mind", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2020-04-03"}, {"id": "a0390", "year": 2020, "artist": "Sault", "title": "Untitled (Black Is)", "genre": "Soul/Funk", "genreMacro": "Funk & Soul", "releaseDate": "2020-06-19"}, {"id": "a0391", "year": 2020, "artist": "Nubya Garcia", "title": "Source", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2020-08-21"}, {"id": "a0392", "year": 2020, "artist": "Wizkid", "title": "Made in Lagos", "genre": "Afrobeats", "genreMacro": "African", "releaseDate": "2020-10-30"}, {"id": "a0393", "year": 2021, "artist": "Tyler, the Creator", "title": "Call Me If You Get Lost", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2021-06-25"}, {"id": "a0394", "year": 2021, "artist": "Little Simz", "title": "Sometimes I Might Be Introvert", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2021-09-03"}, {"id": "a0395", "year": 2021, "artist": "Japanese Breakfast", "title": "Jubilee", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2021-06-04"}, {"id": "a0396", "year": 2021, "artist": "Black Country, New Road", "title": "For the First Time", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "2021-02-05"}, {"id": "a0397", "year": 2021, "artist": "Jazmine Sullivan", "title": "Heaux Tales", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "2021-01-08"}, {"id": "a0398", "year": 2021, "artist": "Turnstile", "title": "Glow On", "genre": "Hardcore", "genreMacro": "Punk", "releaseDate": "2021-08-27"}, {"id": "a0399", "year": 2021, "artist": "Black Coffee", "title": "Subconsciously", "genre": "Afro House", "genreMacro": "Electronic", "releaseDate": "2021-04-30"}, {"id": "a0400", "year": 2022, "artist": "Kendrick Lamar", "title": "Mr. Morale & the Big Steppers", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2022-05-13"}, {"id": "a0401", "year": 2022, "artist": "Beyonce", "title": "Renaissance", "genre": "Dance/Pop", "genreMacro": "Electronic", "releaseDate": "2022-07-29"}, {"id": "a0402", "year": 2022, "artist": "Big Thief", "title": "Dragon New Warm Mountain I Believe in You", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2022-02-11"}, {"id": "a0403", "year": 2022, "artist": "Alvvays", "title": "Blue Rev", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2022-10-07"}, {"id": "a0404", "year": 2022, "artist": "Danger Mouse & Black Thought", "title": "Cheat Codes", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2022-11-11"}, {"id": "a0405", "year": 2022, "artist": "Weyes Blood", "title": "And in the Darkness, Hearts Aglow", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2022-11-18"}, {"id": "a0406", "year": 2022, "artist": "Koffee", "title": "Gifted", "genre": "Reggae/Dancehall", "genreMacro": "Reggae", "releaseDate": "2022-03-25"}, {"id": "a0407", "year": 2023, "artist": "boygenius", "title": "the record", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2023-03-31"}, {"id": "a0408", "year": 2023, "artist": "Sufjan Stevens", "title": "Javelin", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2023-10-06"}, {"id": "a0409", "year": 2023, "artist": "Killer Mike", "title": "Michael", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2023-06-16"}, {"id": "a0410", "year": 2023, "artist": "Wednesday", "title": "Rat Saw God", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2023-04-07"}, {"id": "a0411", "year": 2023, "artist": "Andre 3000", "title": "New Blue Sun", "genre": "Jazz/Ambient", "genreMacro": "Jazz", "releaseDate": "2023-11-17"}, {"id": "a0412", "year": 2023, "artist": "100 gecs", "title": "10,000 gecs", "genre": "Hyperpop", "genreMacro": "Pop", "releaseDate": "2023-03-17"}, {"id": "a0413", "year": 2023, "artist": "Zach Bryan", "title": "Zach Bryan", "genre": "Country", "genreMacro": "Country", "releaseDate": "2023-08-25"}, {"id": "a0414", "year": 2024, "artist": "Charli XCX", "title": "Brat", "genre": "Pop/Electronic", "genreMacro": "Pop", "releaseDate": "2024-06-07"}, {"id": "a0415", "year": 2024, "artist": "Tyler, the Creator", "title": "Chromakopia", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2024-10-28"}, {"id": "a0416", "year": 2024, "artist": "Beyonce", "title": "Cowboy Carter", "genre": "Country/Pop", "genreMacro": "Country", "releaseDate": "2024-03-29"}, {"id": "a0417", "year": 2024, "artist": "Vampire Weekend", "title": "Only God Was Above Us", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2024-04-05"}, {"id": "a0418", "year": 2024, "artist": "MJ Lenderman", "title": "Manning Fireworks", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2024-09-06"}, {"id": "a0419", "year": 2024, "artist": "Waxahatchee", "title": "Tigers Blood", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2024-03-22"}, {"id": "a0420", "year": 2025, "artist": "Bad Bunny", "title": "DeBI TiRAR MaS FOToS", "genre": "Reggaeton", "genreMacro": "Reggae", "releaseDate": "2025-01-05"}, {"id": "a0421", "year": 2025, "artist": "Clipse", "title": "Let God Sort Em Out", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2025-07-11"}, {"id": "a0422", "year": 2025, "artist": "Rosalia", "title": "Lux", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2025-11-07"}, {"id": "a0423", "year": 2025, "artist": "FKA twigs", "title": "Eusexua", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": "2025-01-24"}, {"id": "a0424", "year": 2025, "artist": "Little Simz", "title": "Lotus", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2025-10-10"}, {"id": "a0425", "year": 2025, "artist": "Big Thief", "title": "Double Infinity", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2025-09-05"}, {"id": "a0426", "year": 2025, "artist": "Chronixx", "title": "Chronology", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": null}, {"id": "a0427", "year": 2026, "artist": "Gorillaz", "title": "The Mountain", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": null}, {"id": "a0428", "year": 2026, "artist": "James Blake", "title": "Trying Times", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": null}, {"id": "a0429", "year": 2026, "artist": "Tierra Whack", "title": "WHACK'S MUSEUM", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": null}, {"id": "a0430", "year": 2026, "artist": "hemlocke springs", "title": "the apple tree under the sea", "genre": "Pop", "genreMacro": "Pop", "releaseDate": null}, {"id": "a0431", "year": 2026, "artist": "Hania Rani", "title": "Esja", "genre": "Neo-Classical", "genreMacro": "Classical", "releaseDate": null}];
+const FACTS = {"1966": ["John Lennon's “more popular than Jesus” comment sparks controversy in the US.", "Cream forms in London."], "1967": ["The Jimi Hendrix Experience makes a career-defining appearance at the Monterey Pop Festival.", "The Doors' “Light My Fire” tops the US singles chart."], "1968": ["Led Zeppelin forms in London.", "The Beatles launch Apple Records."], "1969": ["The Woodstock festival draws roughly 400,000 people in August.", "The Rolling Stones' free concert at Altamont Speedway ends in violence."], "1970": ["The Beatles officially announce their breakup.", "Jimi Hendrix and Janis Joplin both die at age 27, within weeks of each other."], "1971": ["Jim Morrison of The Doors dies in Paris, joining Hendrix and Joplin in the so-called “27 Club.”", "Marvin Gaye releases the socially conscious “What's Going On.”"], "1972": ["David Bowie debuts his Ziggy Stardust persona on tour.", "The Eagles form in Los Angeles."], "1973": ["Pink Floyd's “The Dark Side of the Moon” begins a chart run lasting hundreds of weeks.", "Fleetwood Mac undergoes major lineup upheaval."], "1974": ["ABBA wins the Eurovision Song Contest with “Waterloo,” launching their international career.", "Bob Marley and the Wailers effectively split, with Marley continuing under his own name."], "1975": ["Queen release “Bohemian Rhapsody,” pushing the boundaries of the pop single.", "Bruce Springsteen appears on the covers of both Time and Newsweek in the same week."], "1976": ["The Ramones release their self-titled debut, helping ignite the punk movement.", "The Sex Pistols play their earliest, most notorious London gigs."], "1977": ["Elvis Presley dies in Memphis at age 42.", "The Sex Pistols release “God Save the Queen” amid national controversy in the UK."], "1978": ["The “Saturday Night Fever” soundtrack, powered by the Bee Gees, dominates the charts.", "Sid Vicious of the Sex Pistols is charged in the death of Nancy Spungen."], "1979": ["Pink Floyd release the concept album “The Wall.”", "2 Tone Records and the UK ska revival take off with bands like The Specials."], "1980": ["John Lennon is shot and killed outside his New York City apartment.", "Joy Division's Ian Curtis dies by suicide; the surviving members re-form as New Order."], "1981": ["MTV launches, airing The Buggles' “Video Killed the Radio Star” as its first video.", "Bob Marley dies of cancer at age 36."], "1982": ["Michael Jackson's “Thriller” is released and goes on to become the best-selling album of all time.", "The Clash tour major US arenas as punk breaks into the mainstream."], "1983": ["Metallica release their debut album, helping launch the thrash metal movement.", "Karen Carpenter dies, drawing wider attention to eating disorders."], "1984": ["Marvin Gaye is shot and killed by his father the day before his 45th birthday.", "An all-star UK lineup records “Do They Know It's Christmas?” as Band Aid for famine relief."], "1985": ["The Live Aid concerts in London and Philadelphia raise money for Ethiopian famine relief.", "Whitney Houston's self-titled debut turns her into a superstar."], "1986": ["Run-D.M.C.'s collaboration with Aerosmith on “Walk This Way” helps bring hip-hop into the mainstream.", "The Bangles score a major hit with “Manic Monday.”"], "1987": ["U2 become global superstars on the strength of “The Joshua Tree.”", "Prince tours behind “Sign o' the Times.”"], "1988": ["N.W.A's “Straight Outta Compton” sparks controversy and helps define gangsta rap.", "Tracy Chapman breaks through after a standout performance at a Nelson Mandela tribute concert."], "1989": ["The Stone Roses help spark the “Madchester” indie/dance crossover scene.", "Milli Vanilli become global pop stars, later stripped of their Grammy after a lip-sync scandal."], "1990": ["Nelson Mandela's release from prison inspires tribute concerts featuring major musicians.", "Sinead O'Connor tops the charts worldwide with “Nothing Compares 2 U.”"], "1991": ["Nirvana's “Smells Like Teen Spirit” and “Nevermind” push grunge into the mainstream.", "Freddie Mercury of Queen dies the day after publicly confirming his AIDS diagnosis."], "1992": ["Kurt Cobain and Courtney Love marry in Hawaii.", "Whitney Houston stars in and headlines the soundtrack for “The Bodyguard.”"], "1993": ["Snoop Dogg's debut, “Doggystyle,” enters the charts at No. 1.", "Nirvana tours the world behind “In Utero.”"], "1994": ["Kurt Cobain dies by suicide in April, shocking the music world.", "Wu-Tang Clan's debut helps launch a new era of hip-hop crews and solo spin-offs."], "1995": ["Alanis Morissette's “Jagged Little Pill” becomes a global phenomenon.", "Tejano star Selena is shot and killed."], "1996": ["Tupac Shakur is shot and killed in Las Vegas.", "The Fugees' “The Score” becomes a massive crossover hit."], "1997": ["The Notorious B.I.G. is shot and killed in Los Angeles, six months after Tupac's death.", "Radiohead release “OK Computer” to widespread critical acclaim."], "1998": ["Lauryn Hill's “The Miseducation of Lauryn Hill” redefines what a hip-hop/R&B album can be.", "Massive Attack's “Mezzanine” marks a dark, definitive peak for trip-hop."], "1999": ["Napster launches, upending the music industry's relationship with the internet.", "Woodstock '99 ends in fires and violence, a stark contrast to the original festival."], "2000": ["Radiohead's uncompromising “Kid A” debuts at No. 1 in the US despite minimal traditional promotion.", "*NSYNC's “No Strings Attached” sets a new record for first-week album sales."], "2001": ["R&B star Aaliyah dies in a plane crash at age 22.", "The Strokes help spark a 2000s garage-rock revival with “Is This It.”"], "2002": ["The White Stripes and The Strokes lead a wave of retro-leaning rock bands into the mainstream.", "Johnny Cash's stark cover of “Hurt” becomes one of the most acclaimed music videos of the era."], "2003": ["OutKast's “Hey Ya!” becomes a genre-crossing smash hit.", "The White Stripes' “Seven Nation Army” riff becomes a global sports-arena anthem."], "2004": ["Arcade Fire's “Funeral” helps ignite the 2000s indie-rock boom.", "Kanye West debuts as a solo artist with “The College Dropout.”"], "2005": ["The Live 8 concerts raise awareness of global poverty ahead of the G8 summit.", "MySpace becomes a major launching pad for unsigned and independent bands."], "2006": ["Arctic Monkeys' debut becomes the fastest-selling UK debut album up to that point.", "Gnarls Barkley's “Crazy” becomes a hit driven largely by digital downloads."], "2007": ["Radiohead release “In Rainbows” under a pay-what-you-want model, upending music industry economics.", "Amy Winehouse's “Back to Black” era propels her to global stardom."], "2008": ["Lil Wayne's “Tha Carter III” caps years of mixtape dominance with a chart-topping release.", "Vampire Weekend and MGMT help define the blog-rock indie boom."], "2009": ["Michael Jackson dies in Los Angeles at age 50, prompting a global outpouring of grief.", "Kanye West interrupts Taylor Swift's acceptance speech at the MTV Video Music Awards."], "2010": ["Kanye West's “My Beautiful Dark Twisted Fantasy” earns some of the best reviews of his career.", "Spotify continues expanding across Europe, reshaping how people listen to music."], "2011": ["Amy Winehouse dies at age 27.", "Adele's “21” becomes one of the best-selling albums of the decade."], "2012": ["Whitney Houston dies in Beverly Hills at age 48.", "Psy's “Gangnam Style” becomes the first YouTube video to reach a billion views."], "2013": ["Daft Punk's “Get Lucky” and “Random Access Memories” dominate the year's radio and awards shows.", "Beyonce releases a surprise self-titled visual album with zero advance promotion."], "2014": ["D'Angelo returns after 14 years of near-silence with “Black Messiah.”", "Taylor Swift completes her pivot from country to pop with “1989.”"], "2015": ["Kendrick Lamar's “To Pimp a Butterfly” becomes a defining musical statement on race in America.", "Adele's “25” breaks first-week sales records."], "2016": ["David Bowie and Prince both die within months of each other, prompting worldwide tributes.", "Beyonce's “Lemonade” becomes a cultural and critical touchstone."], "2017": ["Chester Bennington of Linkin Park dies by suicide.", "Kendrick Lamar's “DAMN.” later becomes the first non-classical, non-jazz album to win the Pulitzer Prize for Music."], "2018": ["Mac Miller dies of an accidental overdose.", "Cardi B's “Invasion of Privacy” makes her one of the few women to top the Billboard 200 with a solo rap debut."], "2019": ["Lil Nas X's “Old Town Road” becomes the longest-running No. 1 single in Billboard Hot 100 history.", "Rapper Nipsey Hussle is shot and killed in Los Angeles."], "2020": ["Live music grinds to a near-total halt worldwide amid COVID-19 lockdowns.", "Bad Bunny becomes the first Spanish-language artist to top Spotify's global year-end streaming chart."], "2021": ["A crowd surge at Travis Scott's Astroworld festival turns deadly.", "Adele's comeback single “Easy on Me” breaks streaming records."], "2022": ["Taylor Swift becomes the first artist to occupy the entire Billboard Hot 100 top 10 simultaneously.", "Beyonce's “Renaissance” kicks off a dance-music revival across pop."], "2023": ["Tina Turner dies at age 83.", "Taylor Swift's Eras Tour becomes one of the highest-grossing concert tours ever."], "2024": ["Beyonce's “Cowboy Carter” tops both the country and pop album charts.", "A very public lyrical feud between Kendrick Lamar and Drake dominates hip-hop headlines."], "2025": ["Bad Bunny's continued global dominance includes another chart-topping, Puerto Rico-rooted release.", "Clipse reunite for their first album together in years."], "2026": ["Gorillaz release their ninth studio album, “The Mountain.”", "Tierra Whack releases a new rap-focused mixtape, “WHACK'S MUSEUM.”"]};
+const YEAR_MIN = 1966, YEAR_MAX = 2026;
+const MACRO_GENRES = ["Rock","Pop","Folk","Hip-Hop","Electronic","Funk & Soul","R&B","Metal","Punk",
+  "Jazz","Country","Reggae","African","Middle Eastern","Classical","Latin","World","Other"];
+
+function load(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+let overrides = load('almanac_overrides', {});
+let deleted = load('almanac_deleted', []);
+let added = load('almanac_added', []);
+let artCache = load('almanac_art_cache', {});
+
+let ALBUMS = [];
+let albumsByYear = {};
+
+function rebuildAlbums(){
+  ALBUMS = BASE_ALBUMS
+    .filter(a => !deleted.includes(a.id))
+    .map(a => overrides[a.id] ? Object.assign({}, a, overrides[a.id]) : a)
+    .concat(added);
+  albumsByYear = {};
+  ALBUMS.forEach(a => { (albumsByYear[a.year] = albumsByYear[a.year] || []).push(a); });
+}
+rebuildAlbums();
+
+const todayStr = () => {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+};
+
+function formatDate(iso){
+  if(!iso) return null;
+  const parts = iso.split('-');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  if(parts.length === 3) return months[parseInt(parts[1],10)-1] + ' ' + parseInt(parts[2],10) + ', ' + parts[0];
+  if(parts.length === 2) return months[parseInt(parts[1],10)-1] + ' ' + parts[0];
+  return parts[0];
+}
+
+let day = load('almanac_day', null);
+if(!day || day.date !== todayStr()){
+  const year = YEAR_MIN + Math.floor(Math.random() * (YEAR_MAX - YEAR_MIN + 1));
+  day = { date: todayStr(), year: year, shown: [], current: null };
+  save('almanac_day', day);
+}
+
+let log = load('almanac_log', []);
+let selectedRating = 0;
+
+function drawAlbum(excludeCurrent){
+  const pool = albumsByYear[day.year] || [];
+  if(pool.length === 0){ day.current = null; save('almanac_day', day); renderSpin(); return; }
+  let candidates = pool;
+  if(excludeCurrent && day.current && pool.length > 1){
+    candidates = pool.filter(a => a.id !== day.current);
+  }
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  day.current = pick.id;
+  if(!day.shown.includes(pick.id)) day.shown.push(pick.id);
+  save('almanac_day', day);
+  resetForm();
+  renderSpin();
+}
+
+function currentAlbum(){
+  return ALBUMS.find(a => a.id === day.current) || null;
+}
+
+function resetForm(){
+  selectedRating = 0;
+  document.getElementById('fav-tracks').value = '';
+  document.getElementById('review-text').value = '';
+  document.getElementById('saved-note').classList.remove('show');
+  paintStars();
+}
+
+function paintStars(){
+  document.querySelectorAll('#stars button').forEach(b=>{
+    b.classList.toggle('filled', Number(b.dataset.v) <= selectedRating);
+  });
+}
+
+document.getElementById('stars').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  selectedRating = Number(btn.dataset.v);
+  paintStars();
+});
+
+function renderYearFacts(){
+  const el = document.getElementById('year-facts');
+  const items = FACTS[String(day.year)] || [];
+  el.innerHTML = items.map(f => `<li>${f}</li>`).join('');
+}
+
+function fetchCoverArt(album){
+  const artEl = document.querySelector('.record-art[data-album="' + album.id + '"]');
+  if(!artEl) return;
+  if(artCache[album.id]){
+    if(artCache[album.id] !== 'none'){
+      artEl.classList.add('has-cover');
+      artEl.innerHTML = '<img src="' + artCache[album.id] + '" alt="">';
+    }
+    return;
+  }
+  const term = encodeURIComponent(album.artist + ' ' + album.title);
+  fetch('https://itunes.apple.com/search?term=' + term + '&entity=album&limit=1')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const hit = data && data.results && data.results[0];
+      const url = hit ? hit.artworkUrl100.replace('100x100', '500x500') : null;
+      artCache[album.id] = url || 'none';
+      save('almanac_art_cache', artCache);
+      const stillThere = document.querySelector('.record-art[data-album="' + album.id + '"]');
+      if(url && stillThere){
+        stillThere.classList.add('has-cover');
+        stillThere.innerHTML = '<img src="' + url + '" alt="">';
+      }
+    })
+    .catch(() => { /* offline or blocked — leave the vinyl placeholder */ });
+}
+
+function renderSpin(){
+  document.getElementById('year-display').textContent = day.year;
+  const pool = albumsByYear[day.year] || [];
+  document.getElementById('year-count').textContent = pool.length + ' record' + (pool.length===1?'':'s') + ' catalogued for ' + day.year;
+  renderYearFacts();
+
+  const card = document.getElementById('record-card');
+  const reviewCard = document.getElementById('review-card');
+  const album = currentAlbum();
+
+  if(!album){
+    card.innerHTML = '<div class="empty-card">No album drawn yet for ' + day.year + '.<br><button class="big-btn" onclick="drawAlbum(false)">Draw a record</button></div>';
+    reviewCard.style.display = 'none';
+    return;
+  }
+
+  const dateLabel = formatDate(album.releaseDate) || (album.year + ' (exact date not on file)');
+
+  const subTag = (album.genre && album.genre !== album.genreMacro)
+    ? `<span class="subgenre-tag">${escapeHtml(album.genre)}</span>` : '';
+  card.innerHTML = `
+    <div class="record">
+      <div class="record-art" data-album="${album.id}"></div>
+      <div class="record-meta">
+        <span class="genre-tag">${escapeHtml(album.genreMacro)}</span>${subTag}
+        <h2>${escapeHtml(album.title)}</h2>
+        <p class="artist">${escapeHtml(album.artist)}</p>
+        <p class="release-date">Released ${dateLabel}</p>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="ghost-btn" onclick="drawAlbum(true)">Different record from ${day.year}</button>
+    </div>
+  `;
+  reviewCard.style.display = 'block';
+  fetchCoverArt(album);
+}
+
+function saveEntry(){
+  const album = currentAlbum();
+  if(!album) return;
+  const entry = {
+    id: 'e' + Date.now(),
+    dateListened: todayStr(),
+    year: album.year,
+    albumId: album.id,
+    artist: album.artist,
+    title: album.title,
+    genre: album.genre,
+    genreMacro: album.genreMacro,
+    rating: selectedRating,
+    favTracks: document.getElementById('fav-tracks').value.trim(),
+    review: document.getElementById('review-text').value.trim()
+  };
+  log.unshift(entry);
+  save('almanac_log', log);
+  document.getElementById('saved-note').classList.add('show');
+  drawAlbum(true);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function showTab(which){
+  document.getElementById('tab-spin').classList.toggle('active', which==='spin');
+  document.getElementById('tab-log').classList.toggle('active', which==='log');
+  document.getElementById('tab-edit').classList.toggle('active', which==='edit');
+  document.getElementById('view-spin').classList.toggle('active', which==='spin');
+  document.getElementById('view-log').classList.toggle('active', which==='log');
+  document.getElementById('view-edit').classList.toggle('active', which==='edit');
+  if(which === 'log') renderLog();
+  if(which === 'edit'){ populateMacroSelect(); renderEditList(); }
+}
+
+function renderLog(){
+  const search = document.getElementById('log-search').value.trim().toLowerCase();
+  const sortBy = document.getElementById('log-sort').value;
+
+  let items = log.filter(e => {
+    if(!search) return true;
+    return (e.artist + ' ' + e.title).toLowerCase().includes(search);
+  });
+
+  items.sort((a,b) => {
+    if(sortBy === 'date-desc') return a.dateListened < b.dateListened ? 1 : (a.dateListened > b.dateListened ? -1 : (b.id > a.id ? 1 : -1));
+    if(sortBy === 'date-asc') return a.dateListened > b.dateListened ? 1 : -1;
+    if(sortBy === 'year-desc') return b.year - a.year;
+    if(sortBy === 'year-asc') return a.year - b.year;
+    if(sortBy === 'rating-desc') return b.rating - a.rating;
+    return 0;
+  });
+
+  const statsEl = document.getElementById('log-stats');
+  const uniqueYears = new Set(log.map(e=>e.year)).size;
+  const uniqueGenres = new Set(log.map(e=>e.genreMacro || e.genre)).size;
+  statsEl.innerHTML = `
+    <div><span class="n">${log.length}</span><br><span class="lab">Listened</span></div>
+    <div><span class="n">${uniqueYears}</span><br><span class="lab">Years explored</span></div>
+    <div><span class="n">${uniqueGenres}</span><br><span class="lab">Categories logged</span></div>
+  `;
+
+  const listEl = document.getElementById('log-list');
+  if(items.length === 0){
+    listEl.innerHTML = '<div class="no-entries">' + (log.length===0 ? 'Nothing logged yet &mdash; go spin a record.' : 'No entries match your search.') + '</div>';
+    return;
+  }
+  listEl.innerHTML = items.map(e => {
+    const macro = e.genreMacro || e.genre;
+    const subTag = (e.genre && e.genre !== macro) ? `<span class="subgenre-tag">${escapeHtml(e.genre)}</span>` : '';
+    return `
+    <div class="entry">
+      <div class="entry-top">
+        <span class="entry-date">${e.dateListened}</span>
+        <span class="entry-stars">${'\u2605'.repeat(e.rating)}${'\u2606'.repeat(5-e.rating)}</span>
+      </div>
+      <span class="genre-tag">${escapeHtml(macro)}</span>${subTag}
+      <h3>${escapeHtml(e.title)}</h3>
+      <p class="artist-year">${escapeHtml(e.artist)} &middot; ${e.year}</p>
+      ${e.favTracks ? `<p class="fav"><b>Favorite:</b> ${escapeHtml(e.favTracks)}</p>` : ''}
+      ${e.review ? `<p class="review">${escapeHtml(e.review)}</p>` : ''}
+      <div class="btn-row"><button class="small-btn danger" onclick="deleteEntry('${e.id}')">remove entry</button></div>
+    </div>
+  `;
+  }).join('');
+}
+
+function deleteEntry(id){
+  if(!confirm('Remove this entry from your log?')) return;
+  log = log.filter(e => e.id !== id);
+  save('almanac_log', log);
+  renderLog();
+}
+
+/* ---------- Edit Database ---------- */
+
+function populateYearFilter(){
+  const sel = document.getElementById('edit-year-filter');
+  if(sel.options.length > 1) return;
+  for(let y = YEAR_MAX; y >= YEAR_MIN; y--){
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    sel.appendChild(opt);
+  }
+}
+
+let editingId = null;
+
+function renderEditList(){
+  populateYearFilter();
+  const yearFilter = document.getElementById('edit-year-filter').value;
+  const search = document.getElementById('edit-search').value.trim().toLowerCase();
+
+  let items = ALBUMS.filter(a => {
+    if(yearFilter && String(a.year) !== yearFilter) return false;
+    if(search && !(a.artist + ' ' + a.title).toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a,b) => b.year - a.year || a.artist.localeCompare(b.artist));
+
+  const listEl = document.getElementById('edit-list');
+  if(items.length === 0){
+    listEl.innerHTML = '<div class="no-entries">No albums match.</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.map(a => {
+    const isCustom = overrides[a.id] || a.id.startsWith('u');
+    if(editingId === a.id){
+      return `
+        <div class="row-item editing" data-id="${a.id}">
+          <input type="number" id="ef-year-${a.id}" value="${a.year}" min="${YEAR_MIN}" max="${YEAR_MAX}">
+          <input type="text" id="ef-artist-${a.id}" value="${escapeAttr(a.artist)}">
+          <input type="text" id="ef-title-${a.id}" value="${escapeAttr(a.title)}">
+          <select id="ef-macro-${a.id}">${macroOptions(a.genreMacro)}</select>
+          <input type="text" id="ef-genre-${a.id}" value="${escapeAttr(a.genre)}">
+          <input type="date" id="ef-date-${a.id}" value="${a.releaseDate && a.releaseDate.length===10 ? a.releaseDate : ''}">
+          <div class="row-actions">
+            <button class="small-btn" onclick="saveEditRow('${a.id}')">Save</button>
+            <button class="small-btn" onclick="editingId=null; renderEditList();">Cancel</button>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="row-item" data-id="${a.id}">
+        <span class="yr">${a.year}</span>
+        <span>${escapeHtml(a.artist)}${isCustom ? '<span class="edit-badge">edited</span>' : ''}</span>
+        <span>${escapeHtml(a.title)}</span>
+        <span class="gn">${escapeHtml(a.genreMacro)}</span>
+        <span class="gn" style="color:var(--ink-dim);">${escapeHtml(a.genre)}</span>
+        <span class="rd">${a.releaseDate || '&mdash;'}</span>
+        <div class="row-actions">
+          <button class="small-btn" onclick="editingId='${a.id}'; renderEditList();">Edit</button>
+          <button class="small-btn danger" onclick="deleteAlbum('${a.id}')">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
+
+function macroOptions(selected){
+  return MACRO_GENRES.map(m => `<option value="${m}"${m===selected?' selected':''}>${m}</option>`).join('');
+}
+
+function saveEditRow(id){
+  const patch = {
+    year: parseInt(document.getElementById('ef-year-'+id).value, 10),
+    artist: document.getElementById('ef-artist-'+id).value.trim(),
+    title: document.getElementById('ef-title-'+id).value.trim(),
+    genreMacro: document.getElementById('ef-macro-'+id).value,
+    genre: document.getElementById('ef-genre-'+id).value.trim(),
+    releaseDate: document.getElementById('ef-date-'+id).value || null
+  };
+  if(id.startsWith('u')){
+    added = added.map(a => a.id === id ? Object.assign({}, a, patch) : a);
+    save('almanac_added', added);
+  } else {
+    overrides[id] = patch;
+    save('almanac_overrides', overrides);
+  }
+  editingId = null;
+  rebuildAlbums();
+  renderEditList();
+}
+
+function deleteAlbum(id){
+  if(!confirm('Remove this album from the database?')) return;
+  if(id.startsWith('u')){
+    added = added.filter(a => a.id !== id);
+    save('almanac_added', added);
+  } else {
+    if(!deleted.includes(id)) deleted.push(id);
+    save('almanac_deleted', deleted);
+  }
+  rebuildAlbums();
+  if(day.current === id) drawAlbum(false);
+  renderEditList();
+}
+
+function populateMacroSelect(){
+  const sel = document.getElementById('new-macro');
+  if(sel.options.length > 0) return;
+  sel.innerHTML = macroOptions('Rock');
+}
+
+function addAlbum(){
+  const year = parseInt(document.getElementById('new-year').value, 10);
+  const artist = document.getElementById('new-artist').value.trim();
+  const title = document.getElementById('new-title').value.trim();
+  const genreMacro = document.getElementById('new-macro').value;
+  const genre = document.getElementById('new-genre').value.trim();
+  const releaseDate = document.getElementById('new-date').value || null;
+  if(!year || year < YEAR_MIN || year > YEAR_MAX || !artist || !title){
+    alert('Please fill in at least year (1966\u20132026), artist, and title.');
+    return;
+  }
+  const newAlbum = { id: 'u' + Date.now(), year, artist, title, genreMacro, genre: genre || genreMacro, releaseDate };
+  added.push(newAlbum);
+  save('almanac_added', added);
+  ['new-year','new-artist','new-title','new-genre','new-date'].forEach(id => document.getElementById(id).value = '');
+  rebuildAlbums();
+  renderEditList();
+}
+
+function resetEdits(){
+  if(!confirm('This clears every edit, deletion, and added album you\'ve made, restoring the original database. Your listening log is not affected. Continue?')) return;
+  overrides = {}; deleted = []; added = [];
+  save('almanac_overrides', overrides);
+  save('almanac_deleted', deleted);
+  save('almanac_added', added);
+  rebuildAlbums();
+  renderEditList();
+  renderSpin();
+}
+
+// init
+if(!day.current || !ALBUMS.find(a=>a.id===day.current)) drawAlbum(false);
+else renderSpin();
+</script>
+</body>
+</html>
