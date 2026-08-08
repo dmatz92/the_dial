@@ -387,6 +387,12 @@ const YEAR_MIN = 1966, YEAR_MAX = 2026;
 const MACRO_GENRES = ["Rock","Pop","Folk","Hip-Hop","Electronic","Funk & Soul","R&B","Metal","Punk",
   "Jazz","Country","Reggae","African","Middle Eastern","Classical","Latin","World","Other"];
 
+// cloud-sync state must exist before load()/save() run below, since save() checks cloudReady
+let fbApp = null, fbAuth = null, fbDb = null, fbUser = null, cloudReady = false;
+let unsubscribeSnapshot = null;
+let pushTimer = null;
+let applyingRemote = false;
+
 function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
   catch(e){ return fallback; }
@@ -791,10 +797,6 @@ function resetEdits(){
 
 /* ---------- Cloud Sync (Firebase) ---------- */
 
-let fbApp = null, fbAuth = null, fbDb = null, fbUser = null, cloudReady = false;
-let unsubscribeSnapshot = null;
-let pushTimer = null;
-let applyingRemote = false;
 
 function setSyncStatus(text, state){
   document.getElementById('sync-status-text').textContent = text;
