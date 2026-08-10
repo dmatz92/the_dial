@@ -87,6 +87,10 @@
   .record-art.has-cover{ background:none; }
   .record-art img{ width:100%; height:100%; object-fit:cover; display:block; }
   .record-art.spinning{ animation: spin 1.1s linear infinite; }
+  .record-art.small{ flex:0 0 56px; width:56px; height:56px; }
+  .otd-record{ display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+  .otd-save-note{ font-family:var(--mono); font-size:.72rem; color:var(--teal); margin-top:10px; display:none; }
+  .otd-save-note.show{ display:block; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
   .record-meta .genre-tag{
@@ -224,6 +228,7 @@
     <nav>
       <button id="tab-spin" class="active" onclick="showTab('spin')">Today's Spin</button>
       <button id="tab-log" onclick="showTab('log')">Listening Log</button>
+      <button id="tab-otd" onclick="showTab('otd')">On This Day</button>
       <button id="tab-edit" onclick="showTab('edit')">Edit Database</button>
       <button id="tab-sync" onclick="showTab('sync')">Sync</button>
     </nav>
@@ -286,6 +291,19 @@
       </select>
     </div>
     <div id="log-list"></div>
+  </section>
+
+  <!-- ON THIS DAY VIEW -->
+  <section id="view-otd">
+    <div class="dial-row" style="margin-bottom:10px;">
+      <div>
+        <label style="display:block;font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;color:var(--ink-dim);margin-bottom:6px;">Date</label>
+        <input type="date" id="otd-date" onchange="renderOnThisDay()">
+      </div>
+      <button class="ghost-btn" onclick="resetOtdToday()">Today</button>
+    </div>
+    <p class="edit-intro" id="otd-heading" style="margin-bottom:20px;"></p>
+    <div id="otd-list"></div>
   </section>
 
   <!-- EDIT DATABASE VIEW -->
@@ -585,13 +603,20 @@ function escapeHtml(s){
 function showTab(which){
   document.getElementById('tab-spin').classList.toggle('active', which==='spin');
   document.getElementById('tab-log').classList.toggle('active', which==='log');
+  document.getElementById('tab-otd').classList.toggle('active', which==='otd');
   document.getElementById('tab-edit').classList.toggle('active', which==='edit');
   document.getElementById('tab-sync').classList.toggle('active', which==='sync');
   document.getElementById('view-spin').classList.toggle('active', which==='spin');
   document.getElementById('view-log').classList.toggle('active', which==='log');
+  document.getElementById('view-otd').classList.toggle('active', which==='otd');
   document.getElementById('view-edit').classList.toggle('active', which==='edit');
   document.getElementById('view-sync').classList.toggle('active', which==='sync');
   if(which === 'log') renderLog();
+  if(which === 'otd'){
+    const dateInput = document.getElementById('otd-date');
+    if(!dateInput.value) dateInput.value = todayStr();
+    renderOnThisDay();
+  }
   if(which === 'edit'){ populateMacroSelect(); renderEditList(); }
 }
 
@@ -652,6 +677,121 @@ function deleteEntry(id){
   log = log.filter(e => e.id !== id);
   save('almanac_log', log);
   renderLog();
+}
+
+/* ---------- On This Day ---------- */
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let otdRatings = {};
+
+function getOtdMonthDay(){
+  const val = document.getElementById('otd-date').value || todayStr();
+  const parts = val.split('-'); // YYYY-MM-DD
+  return { mm: parts[1], dd: parts[2] };
+}
+
+function resetOtdToday(){
+  document.getElementById('otd-date').value = todayStr();
+  renderOnThisDay();
+}
+
+function friendlyMonthDay(mm, dd){
+  return MONTH_NAMES[parseInt(mm,10)-1] + ' ' + parseInt(dd,10);
+}
+
+function renderOnThisDay(){
+  const { mm, dd } = getOtdMonthDay();
+  const suffix = mm + '-' + dd;
+  const matches = ALBUMS
+    .filter(a => a.releaseDate && a.releaseDate.length === 10 && a.releaseDate.slice(5,10) === suffix)
+    .sort((a,b) => a.year - b.year);
+
+  document.getElementById('otd-heading').innerHTML =
+    matches.length + ' record' + (matches.length===1?'':'s') + ' released on ' + friendlyMonthDay(mm,dd) +
+    ', across every year in the database. <span style="opacity:.7;">(Only albums with a confirmed exact release date can show up here \u2014 check the Edit Database tab to fill in missing dates.)</span>';
+
+  const listEl = document.getElementById('otd-list');
+  if(matches.length === 0){
+    listEl.innerHTML = '<div class="no-entries">Nothing on file for this date yet.</div>';
+    return;
+  }
+
+  listEl.innerHTML = matches.map(a => {
+    const subTag = (a.genre && a.genre !== a.genreMacro) ? `<span class="subgenre-tag">${escapeHtml(a.genre)}</span>` : '';
+    return `
+    <div class="entry">
+      <div class="otd-record">
+        <div class="record-art small" data-album="${a.id}"></div>
+        <div>
+          <span class="genre-tag">${escapeHtml(a.genreMacro)}</span>${subTag}
+          <h3>${escapeHtml(a.title)}</h3>
+          <p class="artist-year">${escapeHtml(a.artist)} &middot; ${a.year}</p>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="ghost-btn" onclick="toggleOtdForm('${a.id}')">Log this listen</button>
+      </div>
+      <div class="otd-form" id="otd-form-${a.id}" style="display:none; margin-top:14px;">
+        <label style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin-bottom:8px;">Rating</label>
+        <div class="stars" id="otd-stars-${a.id}">
+          <button type="button" onclick="setOtdRating('${a.id}',1)" data-v="1">&#9733;</button>
+          <button type="button" onclick="setOtdRating('${a.id}',2)" data-v="2">&#9733;</button>
+          <button type="button" onclick="setOtdRating('${a.id}',3)" data-v="3">&#9733;</button>
+          <button type="button" onclick="setOtdRating('${a.id}',4)" data-v="4">&#9733;</button>
+          <button type="button" onclick="setOtdRating('${a.id}',5)" data-v="5">&#9733;</button>
+        </div>
+        <label for="otd-fav-${a.id}" style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin:14px 0 8px;">Favorite track(s)</label>
+        <input type="text" id="otd-fav-${a.id}" placeholder="e.g. track 3, the title track...">
+        <label for="otd-review-${a.id}" style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin:14px 0 8px;">Notes / short review</label>
+        <textarea id="otd-review-${a.id}" placeholder="What stood out?"></textarea>
+        <div class="btn-row">
+          <button class="big-btn" onclick="saveOtdEntry('${a.id}')">Log this listen</button>
+        </div>
+        <div class="otd-save-note" id="otd-saved-${a.id}">Logged &mdash; check the Listening Log tab.</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  matches.forEach(a => fetchCoverArt(a));
+}
+
+function setOtdRating(id, v){
+  otdRatings[id] = v;
+  const container = document.getElementById('otd-stars-' + id);
+  if(!container) return;
+  container.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('filled', Number(b.dataset.v) <= v);
+  });
+}
+
+function toggleOtdForm(id){
+  const el = document.getElementById('otd-form-' + id);
+  el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+}
+
+function saveOtdEntry(id){
+  const album = ALBUMS.find(a => a.id === id);
+  if(!album) return;
+  const entry = {
+    id: 'e' + Date.now(),
+    dateListened: todayStr(),
+    year: album.year,
+    albumId: album.id,
+    artist: album.artist,
+    title: album.title,
+    genre: album.genre,
+    genreMacro: album.genreMacro,
+    rating: otdRatings[id] || 0,
+    favTracks: document.getElementById('otd-fav-' + id).value.trim(),
+    review: document.getElementById('otd-review-' + id).value.trim()
+  };
+  log.unshift(entry);
+  save('almanac_log', log);
+  document.getElementById('otd-saved-' + id).classList.add('show');
+  document.getElementById('otd-fav-' + id).value = '';
+  document.getElementById('otd-review-' + id).value = '';
+  otdRatings[id] = 0;
+  setOtdRating(id, 0);
 }
 
 /* ---------- Edit Database ---------- */
