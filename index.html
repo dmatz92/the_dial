@@ -6,53 +6,40 @@
 <title>The Dial &mdash; a daily record spin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root{
-    --ink:#f4e9db;
-    --ink-dim:#bc9c8c;
-    --bg:#160f11;
-    --bg-panel:#261519;
-    --bg-panel-2:#33191f;
-    --line: #4a2c30;
-    --teal:#d7a13b;
-    --teal-dim:#a67d2c;
-    --gold:#e2472b;
-    --rust:#b8241f;
-    --rust-dim:#7a1815;
+    --ink:#efe6d3;
+    --ink-dim:#b9ac91;
+    --bg:#15130f;
+    --bg-panel:#1e1b16;
+    --bg-panel-2:#26221b;
+    --line: #3a352b;
+    --teal:#4f8b7a;
+    --teal-dim:#3a6a5c;
+    --gold:#d9a94c;
+    --rust:#c2542f;
+    --rust-dim:#8a3b21;
     --radius: 3px;
     --serif: 'Fraunces', Georgia, serif;
-    --mono: 'Special Elite', 'Courier New', monospace;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
-    position: relative;
     background:
-      repeating-radial-gradient(circle at 100% -8%, transparent 0px, transparent 26px, rgba(215,161,59,0.055) 27px, rgba(215,161,59,0.055) 28px),
-      radial-gradient(ellipse 1000px 620px at 8% -12%, rgba(226,71,43,0.10), transparent 55%),
-      radial-gradient(ellipse 820px 700px at 104% 6%, rgba(215,161,59,0.12), transparent 58%),
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(217,169,76,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(79,139,122,0.10), transparent 55%),
       var(--bg);
     color:var(--ink);
     font-family: var(--serif);
     min-height:100vh;
     padding: 32px 20px 80px;
-    overflow-x: hidden;
   }
-  body::before{
-    content:"";
-    position: fixed; inset:0;
-    pointer-events:none;
-    z-index: 0;
-    opacity: .05;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  }
-  .wrap{ position: relative; z-index: 1; }
   .wrap{ max-width: 780px; margin:0 auto; }
 
   header{ display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:26px; border-bottom:1px solid var(--line); padding-bottom:16px;}
@@ -71,18 +58,9 @@
   section.active{ display:block; animation: fadein .25s ease; }
   @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
-  @keyframes reveal{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
-  .reveal{ animation: reveal .6s cubic-bezier(.16,.8,.24,1) both; }
-  .reveal-1{ animation-delay: .02s; }
-  .reveal-2{ animation-delay: .13s; }
-  .reveal-3{ animation-delay: .24s; }
-  .reveal-4{ animation-delay: .35s; }
-
-  @keyframes slowspin{ to{ transform: rotate(360deg); } }
-
   .dial-row{ display:flex; align-items:center; gap:26px; margin-bottom: 16px; flex-wrap:wrap;}
   .dial{ flex:0 0 auto; }
-  .dial svg{ display:block; animation: slowspin 50s linear infinite; }
+  .dial svg{ display:block; }
   .dial-label{ font-family:var(--mono); }
   .dial-label .eyebrow{ font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-dim); display:block; margin-bottom:6px;}
   .dial-label .year{ font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--gold); line-height:1;}
@@ -101,7 +79,7 @@
   }
   .record-art::after{
     content:""; position:absolute; inset:0; margin:auto; width:20px; height:20px; border-radius:50%;
-    background:var(--rust); box-shadow: inset 0 0 0 3px #160f11; pointer-events:none;
+    background:var(--rust); box-shadow: inset 0 0 0 3px #15130f; pointer-events:none;
   }
   .record-art.has-cover::after{ display:none; }
   .record-art.has-cover{ background:none; }
@@ -143,7 +121,7 @@
     background:none; color:var(--ink-dim); border:1px solid var(--line); padding:6px 10px; border-radius:var(--radius); cursor:pointer;
   }
   button.small-btn:hover{ color:var(--ink); border-color:var(--ink-dim); }
-  button.small-btn.danger:hover{ color:var(--gold); border-color:var(--rust-dim); }
+  button.small-btn.danger:hover{ color:var(--rust); border-color:var(--rust-dim); }
   button:disabled{ opacity:.45; cursor:not-allowed; }
 
   .review-form label{ display:block; font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); margin: 18px 0 8px;}
@@ -200,8 +178,11 @@
 
   /* edit database */
   .edit-intro{ font-family:var(--mono); font-size:.78rem; color:var(--ink-dim); line-height:1.6; margin-bottom:20px; }
-  .add-form{ display:grid; grid-template-columns: 80px 1fr 1fr 130px 130px 140px auto; gap:8px; align-items:end; margin-bottom:10px;}
+  .add-form{ margin-bottom:10px; }
   .add-form label{ font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim); display:block; margin-bottom:4px;}
+  .add-form-wide{ margin-bottom:14px; }
+  .add-form-wide input{ font-size:1.05rem; padding:12px 14px; }
+  .add-form-row{ display:grid; grid-template-columns: 90px 1fr 1fr 140px auto; gap:8px; align-items:end; }
   .row-list{ margin-top:8px; }
   .row-item{
     display:grid; grid-template-columns: 50px 1fr 1fr 100px 100px 110px auto; gap:8px; align-items:center;
@@ -227,7 +208,7 @@
   .sync-help li{ margin-bottom:6px; }
   .sync-help code{ background:var(--bg-panel-2); padding:1px 5px; border-radius:2px; font-size:.72rem; }
   textarea#fb-config{ min-height:90px; font-family:var(--mono); font-size:.75rem; }
-  .sync-error{ font-family:var(--mono); font-size:.75rem; color:var(--gold); margin-top:10px; display:none; }
+  .sync-error{ font-family:var(--mono); font-size:.75rem; color:var(--rust); margin-top:10px; display:none; }
   .sync-error.show{ display:block; }
   .sync-ok{ font-family:var(--mono); font-size:.75rem; color:var(--teal); margin-top:10px; display:none; }
   .sync-ok.show{ display:block; }
@@ -235,7 +216,7 @@
   footer{ text-align:center; margin-top:50px; font-family:var(--mono); font-size:.65rem; color:var(--ink-dim); opacity:.6; }
 
   @media (max-width: 640px){
-    .add-form, .row-item{ grid-template-columns: 1fr; }
+    .add-form-row, .row-item{ grid-template-columns: 1fr; }
     .row-item .rlabel{ display:inline; }
   }
   @media (max-width: 520px){
@@ -248,7 +229,7 @@
 <body>
 <div class="wrap">
 
-  <header class="reveal reveal-1">
+  <header>
     <div class="brand">
       <h1>The Dial</h1>
       <span class="sub">one record a day / 1966&ndash;2026</span>
@@ -264,12 +245,12 @@
 
   <!-- SPIN VIEW -->
   <section id="view-spin" class="active">
-    <div class="dial-row reveal reveal-2">
+    <div class="dial-row">
       <div class="dial">
         <svg width="92" height="92" viewBox="0 0 92 92">
-          <circle cx="46" cy="46" r="43" fill="none" stroke="#4a2c30" stroke-width="2"/>
-          <circle cx="46" cy="46" r="43" fill="none" stroke="#d7a13b" stroke-width="2" stroke-dasharray="4 7" stroke-linecap="round"/>
-          <circle cx="46" cy="46" r="4" fill="#b8241f"/>
+          <circle cx="46" cy="46" r="43" fill="none" stroke="#3a352b" stroke-width="2"/>
+          <circle cx="46" cy="46" r="43" fill="none" stroke="#d9a94c" stroke-width="2" stroke-dasharray="4 7" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="4" fill="#c2542f"/>
         </svg>
       </div>
       <div class="dial-label">
@@ -279,9 +260,9 @@
       </div>
     </div>
 
-    <div class="card reveal reveal-3" id="record-card"></div>
+    <div class="card" id="record-card"></div>
 
-    <div class="card reveal reveal-4" id="review-card" style="display:none;">
+    <div class="card" id="review-card" style="display:none;">
       <div class="review-form">
         <label>Rating</label>
         <div class="stars" id="stars">
@@ -378,17 +359,20 @@
     <div class="card">
       <label style="font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);display:block;margin-bottom:10px;">Add an album</label>
       <div class="add-form">
-        <div><label>Year</label><input type="number" id="new-year" min="1966" max="2026" placeholder="1994"></div>
-        <div><label>Artist</label><input type="text" id="new-artist" placeholder="Nas"></div>
-        <div><label>Title</label><input type="text" id="new-title" placeholder="Illmatic"></div>
-        <div><label>Category</label><select id="new-macro"></select></div>
-        <div><label>Subgenre</label><input type="text" id="new-genre" placeholder="e.g. East Coast Hip-Hop"></div>
-        <div><label>Release date</label><input type="date" id="new-date"></div>
-        <div><button class="big-btn" onclick="addAlbum()">Add</button></div>
+        <div class="add-form-wide"><label>Artist</label><input type="text" id="new-artist" placeholder="Nas"></div>
+        <div class="add-form-wide"><label>Title</label><input type="text" id="new-title" placeholder="Illmatic"></div>
+        <div class="add-form-row">
+          <div><label>Year</label><input type="number" id="new-year" min="1966" max="2026" placeholder="1994"></div>
+          <div><label>Category</label><select id="new-macro"></select></div>
+          <div><label>Subgenre</label><input type="text" id="new-genre" placeholder="e.g. East Coast Hip-Hop"></div>
+          <div><label>Release date</label><input type="date" id="new-date"></div>
+          <div><button class="big-btn" onclick="addAlbum()">Add</button></div>
+        </div>
       </div>
     </div>
 
     <div class="edit-controls">
+      <select id="edit-year-filter" onchange="renderEditList()"><option value="">All years</option></select>
       <select id="edit-decade-filter" onchange="renderEditList()"><option value="">All decades</option></select>
       <select id="edit-genre-filter" onchange="renderEditList()"><option value="">All categories</option></select>
       <input type="text" id="edit-search" placeholder="search artist / album..." oninput="renderEditList()">
@@ -887,7 +871,7 @@ function renderLogCharts(){
   genreBlock.style.display = 'block';
   ratingBlock.style.display = 'block';
 
-  const GENRE_PALETTE = ['#d7a13b','#e2472b','#b8241f','#c97b3d','#8a6d3f','#a8637a','#5c8a7a','#d4914f','#7a5c8a','#9c8a4a','#b06b4a','#6b7a5c','#c9a15c','#8a4a5c','#4a6b7a','#a67d2c'];
+  const GENRE_PALETTE = ['#4f8b7a','#d9a94c','#c2542f','#7a92b8','#a67c9c','#8a9c5e','#c48a4c','#5c8f9c','#9c6b8f','#7c9c6b','#b0708f','#6b85a3','#a8935a','#7ba888','#9a7ab8','#c47a7a'];
 
   const counts = {};
   log.forEach(e => { const g = e.genreMacro || e.genre; counts[g] = (counts[g]||0) + 1; });
@@ -906,8 +890,8 @@ function renderLogCharts(){
         tooltip: { callbacks: { label: (ctx) => ctx.parsed.x + ' album' + (ctx.parsed.x===1?'':'s') } }
       },
       scales: {
-        x: { beginAtZero: true, ticks: { color: '#bc9c8c', precision: 0 }, grid: { color: '#4a2c30' } },
-        y: { ticks: { color: '#f4e9db', font: { family: 'Special Elite' } }, grid: { display: false } }
+        x: { beginAtZero: true, ticks: { color: '#b9ac91', precision: 0 }, grid: { color: '#3a352b' } },
+        y: { ticks: { color: '#efe6d3', font: { family: 'IBM Plex Mono' } }, grid: { display: false } }
       }
     }
   });
@@ -915,7 +899,7 @@ function renderLogCharts(){
   const ratingCounts = [0,0,0,0,0,0];
   log.forEach(e => { ratingCounts[e.rating || 0]++; });
   const ratingLabels = ['Not rated','1 star','2 stars','3 stars','4 stars','5 stars'];
-  const ratingColors = ['#4a2c30','#e2472b','#e2472b','#e2472b','#e2472b','#e2472b'];
+  const ratingColors = ['#3a352b','#d9a94c','#d9a94c','#d9a94c','#d9a94c','#d9a94c'];
 
   if(ratingChartInstance) ratingChartInstance.destroy();
   ratingChartInstance = new Chart(document.getElementById('ratingDistChart'), {
@@ -928,8 +912,8 @@ function renderLogCharts(){
         tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + ' album' + (ctx.parsed.y===1?'':'s') } }
       },
       scales: {
-        y: { beginAtZero: true, ticks: { color: '#bc9c8c', precision: 0 }, grid: { color: '#4a2c30' } },
-        x: { ticks: { color: '#f4e9db', font: { family: 'Special Elite' } }, grid: { display: false } }
+        y: { beginAtZero: true, ticks: { color: '#b9ac91', precision: 0 }, grid: { color: '#3a352b' } },
+        x: { ticks: { color: '#efe6d3', font: { family: 'IBM Plex Mono' } }, grid: { display: false } }
       }
     }
   });
@@ -1060,8 +1044,16 @@ function saveOtdEntry(id){
 /* ---------- Edit Database ---------- */
 
 function populateYearFilter(){
+  const yearSel = document.getElementById('edit-year-filter');
   const decadeSel = document.getElementById('edit-decade-filter');
   const genreSel = document.getElementById('edit-genre-filter');
+  if(yearSel.options.length <= 1){
+    for(let y = YEAR_MAX; y >= YEAR_MIN; y--){
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
+    }
+  }
   if(decadeSel.options.length <= 1){
     decadeSel.innerHTML = '<option value="">All decades</option>' + decadeOptionsHtml();
   }
@@ -1075,12 +1067,14 @@ let editingId = null;
 function renderEditList(){
   populateYearFilter();
   document.getElementById('edit-album-count').textContent = ALBUMS.length;
+  const yearFilter = document.getElementById('edit-year-filter').value;
   const decadeFilter = document.getElementById('edit-decade-filter').value;
   const genreFilter = document.getElementById('edit-genre-filter').value;
   const search = document.getElementById('edit-search').value.trim().toLowerCase();
   const sortBy = document.getElementById('edit-sort').value;
 
   let items = ALBUMS.filter(a => {
+    if(yearFilter && String(a.year) !== yearFilter) return false;
     if(decadeFilter && Math.floor(a.year/10)*10 !== parseInt(decadeFilter,10)) return false;
     if(genreFilter && a.genreMacro !== genreFilter) return false;
     if(search && !(a.artist + ' ' + a.title).toLowerCase().includes(search)) return false;
