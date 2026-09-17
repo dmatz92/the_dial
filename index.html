@@ -6,7 +6,7 @@
 <title>The Dial &mdash; a daily record spin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -26,7 +26,7 @@
     --rust-dim:#7a1815;
     --radius: 3px;
     --serif: 'Fraunces', Georgia, serif;
-    --mono: 'Special Elite', 'Courier New', monospace;
+    --mono: 'Courier Prime', 'Courier New', monospace;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
@@ -94,7 +94,7 @@
 
   .record{ display:flex; gap:20px; align-items:center; }
   .record-art{
-    flex:0 0 86px; width:86px; height:86px; border-radius:50%; overflow:hidden;
+    flex:0 0 86px; width:86px; height:86px; border-radius:6px; overflow:hidden;
     background: repeating-radial-gradient(circle at center, #0c0b09 0 3px, #201c15 3px 6px);
     border:1px solid var(--line);
     position:relative;
@@ -111,6 +111,29 @@
   .otd-record{ display:flex; gap:14px; align-items:center; margin-bottom:12px; }
   .otd-save-note{ font-family:var(--mono); font-size:.72rem; color:var(--teal); margin-top:10px; display:none; }
   .otd-save-note.show{ display:block; }
+
+  .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:10px; }
+  .cal-month-label{ font-family:var(--serif); font-size:1.3rem; font-weight:600; color:var(--ink); }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+  #cal-grid-weekdays{ margin-bottom:6px; }
+  .cal-grid#cal-grid-days{ margin-bottom:26px; }
+  .cal-weekday{ font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim); text-align:center; padding:2px 0; }
+  .cal-day{
+    aspect-ratio: 1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+    font-family:var(--mono); font-size:.8rem; color:var(--ink-dim); cursor:pointer; padding:0;
+  }
+  .cal-day:hover{ border-color:var(--teal-dim); color:var(--ink); }
+  .cal-day.has-data{ color:var(--ink); }
+  .cal-day .cal-dot{ width:4px; height:4px; border-radius:50%; background:var(--teal); visibility:hidden; }
+  .cal-day.has-data .cal-dot{ visibility:visible; }
+  .cal-day.empty-cell{ visibility:hidden; pointer-events:none; border:none; background:none; }
+  .cal-day.is-today{ border-color:var(--gold); border-width:2px; }
+  .cal-day.is-selected{ background:var(--teal); color:var(--bg); border-color:var(--teal); }
+  .cal-day.is-selected .cal-dot{ background:var(--bg); }
+  @media (max-width: 520px){
+    .cal-day{ font-size:.7rem; }
+  }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
   .record-meta .genre-tag{
@@ -143,6 +166,7 @@
     background:none; color:var(--ink-dim); border:1px solid var(--line); padding:6px 10px; border-radius:var(--radius); cursor:pointer;
   }
   button.small-btn:hover{ color:var(--ink); border-color:var(--ink-dim); }
+  button.small-btn.active{ color:var(--bg); background:var(--teal); border-color:var(--teal); }
   button.small-btn.danger:hover{ color:var(--gold); border-color:var(--rust-dim); }
   button:disabled{ opacity:.45; cursor:not-allowed; }
 
@@ -204,7 +228,9 @@
   .add-form label{ font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim); display:block; margin-bottom:4px;}
   .add-form-wide{ margin-bottom:14px; }
   .add-form-wide input{ font-size:1.05rem; padding:12px 14px; }
-  .add-form-row{ display:grid; grid-template-columns: 90px 1fr 1fr 140px auto; gap:8px; align-items:end; }
+  .add-form-row{ display:grid; grid-template-columns: 90px 1fr 1fr 170px auto; gap:8px; align-items:end; }
+  .daycheck{ display:flex !important; align-items:center; gap:5px; font-family:var(--mono); font-size:.62rem; text-transform:none !important; letter-spacing:0 !important; color:var(--ink-dim); margin-top:6px !important; cursor:pointer; }
+  .daycheck input{ width:auto; margin:0; }
   .row-list{ margin-top:8px; }
   .row-item{
     display:grid; grid-template-columns: 50px 1fr 1fr 100px 100px 110px auto; gap:8px; align-items:center;
@@ -259,7 +285,7 @@
     <nav>
       <button id="tab-spin" class="active" onclick="showTab('spin')">Today's Spin</button>
       <button id="tab-log" onclick="showTab('log')">Listening Log</button>
-      <button id="tab-otd" onclick="showTab('otd')">On This Day</button>
+      <button id="tab-otd" onclick="showTab('otd')">Calendar</button>
       <button id="tab-edit" onclick="showTab('edit')">Browse / Edit</button>
       <button id="tab-sync" onclick="showTab('sync')">Sync</button>
     </nav>
@@ -357,15 +383,23 @@
     </div>
   </section>
 
-  <!-- ON THIS DAY VIEW -->
+  <!-- CALENDAR VIEW -->
   <section id="view-otd">
-    <div class="dial-row" style="margin-bottom:10px;">
-      <div>
-        <label style="display:block;font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;color:var(--ink-dim);margin-bottom:6px;">Date</label>
-        <input type="date" id="otd-date" onchange="renderOnThisDay()">
+    <div class="cal-nav">
+      <button class="ghost-btn" onclick="calPrevMonth()">&larr; Prev</button>
+      <div style="text-align:center;">
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <div><button class="small-btn" style="margin-top:6px;" onclick="calGoToday()">Jump to today</button></div>
       </div>
-      <button class="ghost-btn" onclick="resetOtdToday()">Today</button>
+      <button class="ghost-btn" onclick="calNextMonth()">Next &rarr;</button>
     </div>
+    <div class="cal-grid" id="cal-grid-weekdays">
+      <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div><div class="cal-weekday">Tue</div>
+      <div class="cal-weekday">Wed</div><div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div>
+      <div class="cal-weekday">Sat</div>
+    </div>
+    <div class="cal-grid" id="cal-grid-days"></div>
+
     <p class="edit-intro" id="otd-heading" style="margin-bottom:20px;"></p>
     <div id="otd-list"></div>
   </section>
@@ -387,7 +421,12 @@
           <div><label>Year</label><input type="number" id="new-year" min="1966" max="2026" placeholder="1994"></div>
           <div><label>Category</label><select id="new-macro"></select></div>
           <div><label>Subgenre</label><input type="text" id="new-genre" placeholder="e.g. East Coast Hip-Hop"></div>
-          <div><label>Release date</label><input type="date" id="new-date"></div>
+          <div>
+            <label id="new-date-label">Release date</label>
+            <input type="date" id="new-date">
+            <input type="month" id="new-date-month" style="display:none;">
+            <label class="daycheck"><input type="checkbox" id="new-date-monthonly" onchange="toggleNewDateMode()"> only know the month</label>
+          </div>
           <div><button class="big-btn" onclick="addAlbum()">Add</button></div>
         </div>
       </div>
@@ -405,6 +444,9 @@
         <option value="title-asc">Title (A&rarr;Z)</option>
         <option value="genre-asc">Category (A&rarr;Z)</option>
       </select>
+    </div>
+    <div style="margin:-8px 0 18px;">
+      <button class="small-btn" id="placeholder-filter-btn" onclick="togglePlaceholderFilter()">Show possible placeholder dates (day = 1st)</button>
     </div>
 
     <div class="row-list" id="edit-list"></div>
@@ -2616,11 +2658,7 @@ function showTab(which){
   document.getElementById('view-edit').classList.toggle('active', which==='edit');
   document.getElementById('view-sync').classList.toggle('active', which==='sync');
   if(which === 'log') renderLog();
-  if(which === 'otd'){
-    const dateInput = document.getElementById('otd-date');
-    if(!dateInput.value) dateInput.value = todayStr();
-    renderOnThisDay();
-  }
+  if(which === 'otd') renderCalendar();
   if(which === 'edit'){ populateMacroSelect(); renderEditList(); }
 }
 
@@ -2730,7 +2768,7 @@ function renderLogCharts(){
       },
       scales: {
         x: { beginAtZero: true, ticks: { color: '#bc9c8c', precision: 0 }, grid: { color: '#4a2c30' } },
-        y: { ticks: { color: '#f4e9db', font: { family: 'Special Elite' } }, grid: { display: false } }
+        y: { ticks: { color: '#f4e9db', font: { family: 'Courier Prime' } }, grid: { display: false } }
       }
     }
   });
@@ -2752,7 +2790,7 @@ function renderLogCharts(){
       },
       scales: {
         y: { beginAtZero: true, ticks: { color: '#bc9c8c', precision: 0 }, grid: { color: '#4a2c30' } },
-        x: { ticks: { color: '#f4e9db', font: { family: 'Special Elite' } }, grid: { display: false } }
+        x: { ticks: { color: '#f4e9db', font: { family: 'Courier Prime' } }, grid: { display: false } }
       }
     }
   });
@@ -2765,28 +2803,93 @@ function deleteEntry(id){
   renderLog();
 }
 
-/* ---------- On This Day ---------- */
+/* ---------- Calendar ---------- */
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 let otdRatings = {};
+let calYear, calMonth, selMonth, selDay;
 
-function getOtdMonthDay(){
-  const val = document.getElementById('otd-date').value || todayStr();
-  const parts = val.split('-'); // YYYY-MM-DD
-  return { mm: parts[1], dd: parts[2] };
+function initCalendarState(){
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  selMonth = now.getMonth() + 1;
+  selDay = now.getDate();
 }
 
-function resetOtdToday(){
-  document.getElementById('otd-date').value = todayStr();
-  renderOnThisDay();
+function calPrevMonth(){
+  calMonth--;
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  renderCalendar();
+}
+function calNextMonth(){
+  calMonth++;
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  renderCalendar();
+}
+function calGoToday(){
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  selMonth = now.getMonth() + 1; selDay = now.getDate();
+  renderCalendar();
+}
+
+function buildDayCounts(){
+  const counts = {};
+  ALBUMS.forEach(a => {
+    if(a.releaseDate && a.releaseDate.length === 10){
+      const key = a.releaseDate.slice(5,10);
+      counts[key] = (counts[key]||0) + 1;
+    }
+  });
+  return counts;
 }
 
 function friendlyMonthDay(mm, dd){
   return MONTH_NAMES[parseInt(mm,10)-1] + ' ' + parseInt(dd,10);
 }
 
-function renderOnThisDay(){
-  const { mm, dd } = getOtdMonthDay();
+function renderCalendar(){
+  const counts = buildDayCounts();
+  document.getElementById('cal-month-label').textContent = MONTH_NAMES[calMonth] + ' ' + calYear;
+
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const todayReal = todayStr();
+
+  let html = '';
+  for(let i = 0; i < firstDow; i++){
+    html += '<div class="cal-day empty-cell"></div>';
+  }
+  for(let d = 1; d <= daysInMonth; d++){
+    const mm = String(calMonth + 1).padStart(2,'0');
+    const dd = String(d).padStart(2,'0');
+    const count = counts[mm + '-' + dd] || 0;
+    const isToday = (calYear + '-' + mm + '-' + dd) === todayReal;
+    const isSelected = (selMonth === calMonth + 1 && selDay === d);
+    const cls = ['cal-day'];
+    if(count > 0) cls.push('has-data');
+    if(isToday) cls.push('is-today');
+    if(isSelected) cls.push('is-selected');
+    html += `<button type="button" class="${cls.join(' ')}" onclick="selectCalDay(${calMonth+1},${d})"><span>${d}</span><span class="cal-dot"></span></button>`;
+  }
+  const totalCells = firstDow + daysInMonth;
+  const trailing = (7 - (totalCells % 7)) % 7;
+  for(let i = 0; i < trailing; i++){
+    html += '<div class="cal-day empty-cell"></div>';
+  }
+  document.getElementById('cal-grid-days').innerHTML = html;
+  renderCalDayList();
+}
+
+function selectCalDay(month, day){
+  selMonth = month; selDay = day;
+  renderCalendar();
+}
+
+function renderCalDayList(){
+  const mm = String(selMonth).padStart(2,'0');
+  const dd = String(selDay).padStart(2,'0');
   const suffix = mm + '-' + dd;
   const matches = ALBUMS
     .filter(a => a.releaseDate && a.releaseDate.length === 10 && a.releaseDate.slice(5,10) === suffix)
@@ -2794,7 +2897,7 @@ function renderOnThisDay(){
 
   document.getElementById('otd-heading').innerHTML =
     matches.length + ' record' + (matches.length===1?'':'s') + ' released on ' + friendlyMonthDay(mm,dd) +
-    ', across every year in the database. <span style="opacity:.7;">(Only albums with a confirmed exact release date can show up here \u2014 check the Edit Database tab to fill in missing dates.)</span>';
+    ', across every year in the database. <span style="opacity:.7;">(Only albums with a confirmed exact release date can show up here \u2014 check the Browse / Edit tab to fill in missing dates.)</span>';
 
   const listEl = document.getElementById('otd-list');
   if(matches.length === 0){
@@ -2902,6 +3005,15 @@ function populateYearFilter(){
 }
 
 let editingId = null;
+let placeholderFilterOn = false;
+
+function togglePlaceholderFilter(){
+  placeholderFilterOn = !placeholderFilterOn;
+  const btn = document.getElementById('placeholder-filter-btn');
+  btn.classList.toggle('active', placeholderFilterOn);
+  btn.textContent = placeholderFilterOn ? 'Showing possible placeholders \u2014 click to clear' : 'Show possible placeholder dates (day = 1st)';
+  renderEditList();
+}
 
 function renderEditList(){
   populateYearFilter();
@@ -2917,6 +3029,7 @@ function renderEditList(){
     if(decadeFilter && Math.floor(a.year/10)*10 !== parseInt(decadeFilter,10)) return false;
     if(genreFilter && a.genreMacro !== genreFilter) return false;
     if(search && !(a.artist + ' ' + a.title).toLowerCase().includes(search)) return false;
+    if(placeholderFilterOn && !(a.releaseDate && a.releaseDate.length === 10 && a.releaseDate.slice(8,10) === '01')) return false;
     return true;
   });
 
@@ -2931,13 +3044,14 @@ function renderEditList(){
 
   const listEl = document.getElementById('edit-list');
   if(items.length === 0){
-    listEl.innerHTML = '<div class="no-entries">No albums match.</div>';
+    listEl.innerHTML = '<div class="no-entries">' + (placeholderFilterOn ? 'No day-1st dates found \u2014 nice and clean.' : 'No albums match.') + '</div>';
     return;
   }
 
   listEl.innerHTML = items.map(a => {
     const isCustom = overrides[a.id] || a.id.startsWith('u');
     if(editingId === a.id){
+      const isMonthOnly = a.releaseDate && a.releaseDate.length === 7;
       return `
         <div class="row-item editing" data-id="${a.id}">
           <input type="number" id="ef-year-${a.id}" value="${a.year}" min="${YEAR_MIN}" max="${YEAR_MAX}">
@@ -2945,7 +3059,11 @@ function renderEditList(){
           <input type="text" id="ef-title-${a.id}" value="${escapeAttr(a.title)}">
           <select id="ef-macro-${a.id}">${macroOptions(a.genreMacro)}</select>
           <input type="text" id="ef-genre-${a.id}" value="${escapeAttr(a.genre)}">
-          <input type="date" id="ef-date-${a.id}" value="${a.releaseDate && a.releaseDate.length===10 ? a.releaseDate : ''}">
+          <div>
+            <input type="date" id="ef-date-${a.id}" style="display:${isMonthOnly?'none':'block'};" value="${a.releaseDate && a.releaseDate.length===10 ? a.releaseDate : ''}">
+            <input type="month" id="ef-date-month-${a.id}" style="display:${isMonthOnly?'block':'none'};" value="${isMonthOnly ? a.releaseDate : ''}">
+            <label class="daycheck"><input type="checkbox" id="ef-monthonly-${a.id}" ${isMonthOnly?'checked':''} onchange="toggleEfDateMode('${a.id}')"> only know the month</label>
+          </div>
           <div class="row-actions">
             <button class="small-btn" onclick="saveEditRow('${a.id}')">Save</button>
             <button class="small-btn" onclick="editingId=null; renderEditList();">Cancel</button>
@@ -2959,7 +3077,7 @@ function renderEditList(){
         <span>${escapeHtml(a.title)}</span>
         <span class="gn">${escapeHtml(a.genreMacro)}</span>
         <span class="gn" style="color:var(--ink-dim);">${escapeHtml(a.genre)}</span>
-        <span class="rd">${a.releaseDate || '&mdash;'}</span>
+        <span class="rd">${formatDate(a.releaseDate) || '&mdash;'}</span>
         <div class="row-actions">
           <button class="small-btn" onclick="editingId='${a.id}'; renderEditList();">Edit</button>
           <button class="small-btn danger" onclick="deleteAlbum('${a.id}')">Delete</button>
@@ -2974,14 +3092,24 @@ function macroOptions(selected){
   return MACRO_GENRES.map(m => `<option value="${m}"${m===selected?' selected':''}>${m}</option>`).join('');
 }
 
+function toggleEfDateMode(id){
+  const monthOnly = document.getElementById('ef-monthonly-'+id).checked;
+  document.getElementById('ef-date-'+id).style.display = monthOnly ? 'none' : 'block';
+  document.getElementById('ef-date-month-'+id).style.display = monthOnly ? 'block' : 'none';
+}
+
 function saveEditRow(id){
+  const monthOnly = document.getElementById('ef-monthonly-'+id).checked;
+  const releaseDate = monthOnly
+    ? (document.getElementById('ef-date-month-'+id).value || null)
+    : (document.getElementById('ef-date-'+id).value || null);
   const patch = {
     year: parseInt(document.getElementById('ef-year-'+id).value, 10),
     artist: document.getElementById('ef-artist-'+id).value.trim(),
     title: document.getElementById('ef-title-'+id).value.trim(),
     genreMacro: document.getElementById('ef-macro-'+id).value,
     genre: document.getElementById('ef-genre-'+id).value.trim(),
-    releaseDate: document.getElementById('ef-date-'+id).value || null
+    releaseDate: releaseDate
   };
   if(id.startsWith('u')){
     added = added.map(a => a.id === id ? Object.assign({}, a, patch) : a);
@@ -3015,13 +3143,23 @@ function populateMacroSelect(){
   sel.innerHTML = macroOptions('Rock');
 }
 
+function toggleNewDateMode(){
+  const monthOnly = document.getElementById('new-date-monthonly').checked;
+  document.getElementById('new-date').style.display = monthOnly ? 'none' : 'block';
+  document.getElementById('new-date-month').style.display = monthOnly ? 'block' : 'none';
+  document.getElementById('new-date-label').textContent = monthOnly ? 'Release month' : 'Release date';
+}
+
 function addAlbum(){
   const year = parseInt(document.getElementById('new-year').value, 10);
   const artist = document.getElementById('new-artist').value.trim();
   const title = document.getElementById('new-title').value.trim();
   const genreMacro = document.getElementById('new-macro').value;
   const genre = document.getElementById('new-genre').value.trim();
-  const releaseDate = document.getElementById('new-date').value || null;
+  const monthOnly = document.getElementById('new-date-monthonly').checked;
+  const releaseDate = monthOnly
+    ? (document.getElementById('new-date-month').value || null)
+    : (document.getElementById('new-date').value || null);
   if(!year || year < YEAR_MIN || year > YEAR_MAX || !artist || !title){
     alert('Please fill in at least year (1966\u20132026), artist, and title.');
     return;
@@ -3029,7 +3167,9 @@ function addAlbum(){
   const newAlbum = { id: 'u' + Date.now(), year, artist, title, genreMacro, genre: genre || genreMacro, releaseDate };
   added.push(newAlbum);
   save('almanac_added', added);
-  ['new-year','new-artist','new-title','new-genre','new-date'].forEach(id => document.getElementById(id).value = '');
+  ['new-year','new-artist','new-title','new-genre','new-date','new-date-month'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-date-monthonly').checked = false;
+  toggleNewDateMode();
   rebuildAlbums();
   renderEditList();
 }
@@ -3231,6 +3371,7 @@ function pushStateToCloud(){
 
 // init
 populateOnDemandSelects();
+initCalendarState();
 if(!day.current || !ALBUMS.find(a=>a.id===day.current)) drawAlbum(false);
 else renderSpin();
 </script>
