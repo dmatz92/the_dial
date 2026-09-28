@@ -2692,7 +2692,29 @@ let artCache = load('almanac_art_cache', {});
 let ALBUMS = [];
 let albumsByYear = {};
 
+// Drop local additions/edits that are already built into BASE_ALBUMS. This can happen when
+// an older copy of the page (another tab or device) syncs its old local data back in.
+const BASE_BY_ID = {};
+const normKey = a => (a.artist + '|' + a.title).toLowerCase().replace(/[^a-z0-9|]/g, '');
+const BASE_KEYS = new Set();
+BASE_ALBUMS.forEach(a => { BASE_BY_ID[a.id] = a; BASE_KEYS.add(normKey(a)); });
+let pruneDirty = false;
+function pruneRedundantLocal(){
+  const addedBefore = added.length;
+  added = added.filter(a => !BASE_BY_ID[a.id] && !BASE_KEYS.has(normKey(a)));
+  let overridesChanged = false;
+  Object.keys(overrides).forEach(id => {
+    const base = BASE_BY_ID[id], o = overrides[id];
+    if(!base) return;
+    const same = Object.keys(o).every(k => (o[k] ?? null) === (base[k] ?? null));
+    if(same){ delete overrides[id]; overridesChanged = true; }
+  });
+  if(added.length !== addedBefore){ localStorage.setItem('almanac_added', JSON.stringify(added)); pruneDirty = true; }
+  if(overridesChanged){ localStorage.setItem('almanac_overrides', JSON.stringify(overrides)); pruneDirty = true; }
+}
+
 function rebuildAlbums(){
+  pruneRedundantLocal();
   ALBUMS = BASE_ALBUMS
     .filter(a => !deleted.includes(a.id))
     .map(a => overrides[a.id] ? Object.assign({}, a, overrides[a.id]) : a)
@@ -3650,8 +3672,9 @@ function applyCloudSnapshot(data){
   if(document.getElementById('view-log').classList.contains('active')) renderLog();
   if(document.getElementById('view-edit').classList.contains('active')) renderEditList();
   applyingRemote = false;
-  if(albumsJustMigrated){
+  if(albumsJustMigrated || pruneDirty){
     albumsJustMigrated = false;
+    pruneDirty = false;
     pushStateToCloud();
   }
 }
