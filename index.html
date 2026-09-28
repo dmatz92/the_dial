@@ -258,6 +258,8 @@
   .row-item .gn{ font-family:var(--mono); font-size:.72rem; color:var(--teal); }
   .row-item .rd{ font-family:var(--mono); font-size:.72rem; color:var(--ink-dim); }
   .row-actions{ display:flex; gap:6px; }
+  .edit-log-form{ background:var(--bg-panel-2); border:1px solid var(--teal-dim); border-radius:var(--radius); padding:16px; margin:6px 0 12px; }
+  .logged-badge{ font-family:var(--mono); font-size:.6rem; color:var(--teal); margin-left:6px; }
   .edit-badge{ font-family:var(--mono); font-size:.6rem; color:var(--gold); margin-left:6px; }
 
   /* sync tab */
@@ -347,16 +349,6 @@
       </div>
     </div>
 
-    <div class="card" id="ondemand-card">
-      <div class="chart-block-title">Draw on demand</div>
-      <p style="font-family:var(--mono);font-size:.76rem;color:var(--ink-dim);margin:0 0 16px;">Not feeling today's year? Pull a record from anywhere in the database, right now.</p>
-      <div class="log-controls" style="margin-bottom:4px;">
-        <select id="od-decade"><option value="">Any decade</option></select>
-        <select id="od-genre"><option value="">Any category</option></select>
-        <button class="big-btn" onclick="drawOnDemand()">Surprise me</button>
-      </div>
-      <div id="od-result"></div>
-    </div>
   </section>
 
   <!-- LOG VIEW -->
@@ -424,7 +416,7 @@
   <section id="view-edit">
     <p class="edit-intro">
       Browse, search, and edit the full album database behind the tool &mdash; <span id="edit-album-count">&hellip;</span> records across 1966&ndash;2026.
-      Fix a typo, correct a release date, remove something you don't want suggested, or add albums of your own.
+      Log a listen for any album, fix a typo, correct a release date, remove something you don't want suggested, or add albums of your own.
       Everything here is saved to this browser only.
     </p>
 
@@ -460,9 +452,6 @@
         <option value="title-asc">Title (A&rarr;Z)</option>
         <option value="genre-asc">Category (A&rarr;Z)</option>
       </select>
-    </div>
-    <div style="margin:-8px 0 18px;">
-      <button class="small-btn" id="placeholder-filter-btn" onclick="togglePlaceholderFilter()">Show possible placeholder dates (day = 1st)</button>
     </div>
 
     <div class="row-list" id="edit-list"></div>
@@ -637,6 +626,7 @@ const BASE_ALBUMS = [
 {"id": "a0093", "year": 1968, "artist": "Pedro Santos", "title": "Krishnanda", "genre": "MPB", "genreMacro": "Folk", "releaseDate": null},
 {"id": "a0094", "year": 1968, "artist": "Pink Floyd", "title": "A Saucerful of Secrets", "genre": "Psychedelic Rock", "genreMacro": "Rock", "releaseDate": "1968-06-28"},
 {"id": "a0095", "year": 1968, "artist": "Shivkumar Sharma", "title": "Call of the Valley", "genre": "Hindustani Classical", "genreMacro": "World", "releaseDate": null},
+{"id": "u1790624642244", "year": 1968, "artist": "Silver Apples", "title": "Silver Apples", "genre": "Experimental", "genreMacro": "Electronic", "releaseDate": "1968-06"},
 {"id": "a0096", "year": 1968, "artist": "Simon & Garfunkel", "title": "Bookends", "genre": "Folk Pop", "genreMacro": "Folk", "releaseDate": "1968-04-03"},
 {"id": "a0097", "year": 1968, "artist": "Sly and the Family Stone", "title": "Dance to the Music", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1968-04-27"},
 {"id": "a0098", "year": 1968, "artist": "The Band", "title": "Music from Big Pink", "genre": "Roots Rock", "genreMacro": "Rock", "releaseDate": "1968-07-01"},
@@ -671,6 +661,7 @@ const BASE_ALBUMS = [
 {"id": "a0127", "year": 1969, "artist": "David Bowie", "title": "David Bowie", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1969-11-14"},
 {"id": "a0128", "year": 1969, "artist": "Deep Purple", "title": "Deep Purple", "genre": "Psychedelic Rock", "genreMacro": "Rock", "releaseDate": "1969-06"},
 {"id": "a0129", "year": 1969, "artist": "Diana Ross & the Supremes", "title": "Let the Sunshine In", "genre": "Motown", "genreMacro": "Funk & Soul", "releaseDate": "1969-05-26"},
+{"id": "u1790624700508", "year": 1969, "artist": "Dick Hyman", "title": "Moog: The Electric Eclectics of Dick Hyman", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": null},
 {"id": "a0130", "year": 1969, "artist": "Dionne Warwick", "title": "Soulful", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1969-04"},
 {"id": "a0131", "year": 1969, "artist": "Dusty Springfield", "title": "Dusty in Memphis", "genre": "Pop Soul", "genreMacro": "Funk & Soul", "releaseDate": "1969-01-17"},
 {"id": "a0132", "year": 1969, "artist": "Elton John", "title": "Empty Sky", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1969-06-06"},
@@ -700,6 +691,7 @@ const BASE_ALBUMS = [
 {"id": "a0156", "year": 1969, "artist": "Mickey Newbury", "title": "Looks Like Rain", "genre": "Progressive Country", "genreMacro": "Country", "releaseDate": "1969-09"},
 {"id": "a0157", "year": 1969, "artist": "Miles Davis", "title": "Filles de Kilimanjaro", "genre": "Post Bop", "genreMacro": "Jazz", "releaseDate": "1969-02-05"},
 {"id": "a0158", "year": 1969, "artist": "Miles Davis", "title": "In a Silent Way", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1969-07-30"},
+{"id": "u1790624679452", "year": 1969, "artist": "Morton Subotnick", "title": "Touch", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": null},
 {"id": "a0159", "year": 1969, "artist": "Mott the Hoople", "title": "Mott the Hoople", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1969-11-22"},
 {"id": "a0160", "year": 1969, "artist": "Muddy Waters", "title": "After the Rain", "genre": "Blues", "genreMacro": "R&B", "releaseDate": "1969-05-12"},
 {"id": "a0161", "year": 1969, "artist": "Neil Young / Crazy Horse", "title": "Everybody Knows This Is Nowhere", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1969-05-14"},
@@ -712,9 +704,11 @@ const BASE_ALBUMS = [
 {"id": "a0168", "year": 1969, "artist": "Santana", "title": "Santana", "genre": "Latin Rock", "genreMacro": "Rock", "releaseDate": "1969-08-22"},
 {"id": "a0169", "year": 1969, "artist": "Scott Engel", "title": "Scott 4", "genre": "Baroque Pop", "genreMacro": "Pop", "releaseDate": "1969-11-04"},
 {"id": "a0170", "year": 1969, "artist": "Scott Walker", "title": "Scott 3", "genre": "Baroque Pop", "genreMacro": "Pop", "releaseDate": "1969-03-21"},
+{"id": "u1790624628260", "year": 1969, "artist": "Silver Apples", "title": "Contact", "genre": "Psychedelic Experimental", "genreMacro": "Electronic", "releaseDate": "1969-02"},
 {"id": "a0171", "year": 1969, "artist": "Sly and the Family Stone", "title": "Stand!", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1969-05-03"},
 {"id": "a0172", "year": 1969, "artist": "Sonny Sharrock", "title": "Black Woman", "genre": "Free Jazz", "genreMacro": "Jazz", "releaseDate": "1969-12"},
 {"id": "a0173", "year": 1969, "artist": "Stevie Wonder", "title": "My Cherie Amour", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1969-08-29"},
+{"id": "u1790624601804", "year": 1969, "artist": "Terry Riley", "title": "A Rainbow in Curved Air", "genre": "Progressive Electronic", "genreMacro": "Electronic", "releaseDate": "1969-10"},
 {"id": "a0174", "year": 1969, "artist": "The 5th Dimension", "title": "The Age of Aquarius", "genre": "Psych Soul", "genreMacro": "Funk & Soul", "releaseDate": "1969-05"},
 {"id": "a0175", "year": 1969, "artist": "The Allman Brothers Band", "title": "The Allman Brothers Band", "genre": "Blues Rock", "genreMacro": "Rock", "releaseDate": "1969-11-04"},
 {"id": "a0176", "year": 1969, "artist": "The Band", "title": "The Band", "genre": "Roots Rock", "genreMacro": "Rock", "releaseDate": "1969-09-22"},
@@ -734,6 +728,7 @@ const BASE_ALBUMS = [
 {"id": "a0190", "year": 1969, "artist": "Townes Van Zandt", "title": "Our Mother the Mountain", "genre": "Singer-Songwriter", "genreMacro": "Country", "releaseDate": "1969-04"},
 {"id": "a0191", "year": 1969, "artist": "Townes Van Zandt", "title": "Townes Van Zandt", "genre": "Country Folk", "genreMacro": "Country", "releaseDate": "1969-09"},
 {"id": "a0192", "year": 1969, "artist": "Traffic", "title": "Last Exit", "genre": "Blues Rock", "genreMacro": "Rock", "releaseDate": "1969-05"},
+{"id": "u1790624663348", "year": 1969, "artist": "Wendy Carlos", "title": "The Well-Tempered Synthesizer", "genre": "Baroque", "genreMacro": "Electronic", "releaseDate": null},
 {"id": "a0193", "year": 1970, "artist": "Alice Coltrane", "title": "Ptah, the El Daoud", "genre": "Post Bop", "genreMacro": "Jazz", "releaseDate": "1970-09"},
 {"id": "a0194", "year": 1970, "artist": "Amon Duul II", "title": "Yeti", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": "1970-04"},
 {"id": "a0195", "year": 1970, "artist": "Andrew Lloyd Webber & Tim Rice", "title": "Jesus Christ Superstar", "genre": "Rock Opera", "genreMacro": "Other", "releaseDate": "1970-10-27"},
@@ -868,6 +863,7 @@ const BASE_ALBUMS = [
 {"id": "a0324", "year": 1972, "artist": "Chicago", "title": "Chicago V", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1972-07-10"},
 {"id": "a0325", "year": 1972, "artist": "Curtis Mayfield", "title": "Super Fly", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1972-07-12"},
 {"id": "a0326", "year": 1972, "artist": "David Bowie", "title": "The Rise and Fall of Ziggy Stardust", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1972-06-16"},
+{"id": "u1790013333887", "year": 1972, "artist": "Donny Hathaway", "title": "Live", "genre": "Deep Soul", "genreMacro": "Funk & Soul", "releaseDate": "1972-02"},
 {"id": "a0327", "year": 1972, "artist": "Eagles", "title": "Eagles", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1972-06-01"},
 {"id": "a0328", "year": 1972, "artist": "Elton John", "title": "Honky Chateau", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1972-05-19"},
 {"id": "a0329", "year": 1972, "artist": "Grateful Dead", "title": "Europe '72", "genre": "Psychedelic Rock", "genreMacro": "Rock", "releaseDate": "1972-11-05"},
@@ -924,6 +920,7 @@ const BASE_ALBUMS = [
 {"id": "a0380", "year": 1973, "artist": "Faces", "title": "Ooh La La", "genre": "Folk Rock", "genreMacro": "Rock", "releaseDate": "1973-03"},
 {"id": "a0381", "year": 1973, "artist": "Fela Kuti", "title": "Gentleman", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": null},
 {"id": "a0382", "year": 1973, "artist": "George Harrison", "title": "Living in the Material World", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1973-05-30"},
+{"id": "u1790090352706", "year": 1973, "artist": "Golden Earring", "title": "Moontan", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1973-08"},
 {"id": "a0383", "year": 1973, "artist": "Graham Parsons", "title": "GP", "genre": "Country Rock", "genreMacro": "Country", "releaseDate": "1973-01"},
 {"id": "a0384", "year": 1973, "artist": "Hall & Oates", "title": "Abandoned Luncheonette", "genre": "Blue-Eyed Soul", "genreMacro": "Pop", "releaseDate": "1973-11-03"},
 {"id": "a0385", "year": 1973, "artist": "Herbie Hancock", "title": "Head Hunters", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1973-10-13"},
@@ -933,6 +930,7 @@ const BASE_ALBUMS = [
 {"id": "a0389", "year": 1973, "artist": "Led Zeppelin", "title": "Houses of the Holy", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1973-03-28"},
 {"id": "a0390", "year": 1973, "artist": "Lynyrd Skynyrd", "title": "(Pronounced 'Lĕh-'nérd 'Skin-'nérd)", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1973-08-13"},
 {"id": "a0391", "year": 1973, "artist": "Marvin Gaye", "title": "Let's Get It On", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1973-08-28"},
+{"id": "u1790623624222", "year": 1973, "artist": "Neu!", "title": "Neu! 2", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": null},
 {"id": "a0392", "year": 1973, "artist": "New York Dolls", "title": "New York Dolls", "genre": "Proto-Punk", "genreMacro": "Rock", "releaseDate": "1973-07-27"},
 {"id": "a0393", "year": 1973, "artist": "Paul Simon", "title": "There Goes Rhymin' Simon", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1973-05-05"},
 {"id": "a0394", "year": 1973, "artist": "Pink Floyd", "title": "The Dark Side of the Moon", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1973-03-01"},
@@ -948,31 +946,63 @@ const BASE_ALBUMS = [
 {"id": "a0404", "year": 1973, "artist": "Waylon Jennings", "title": "Honky Tonk Heroes", "genre": "Outlaw Country", "genreMacro": "Country", "releaseDate": "1973-06-25"},
 {"id": "a0405", "year": 1973, "artist": "Wings", "title": "Band on the Run", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1973-12-05"},
 {"id": "a0406", "year": 1973, "artist": "Wings", "title": "Red Rose Speedway", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1973-05-04"},
+{"id": "u1790089479259", "year": 1974, "artist": "ABBA", "title": "Waterloo", "genre": "Disco Pop", "genreMacro": "Pop", "releaseDate": "1974-03-04"},
+{"id": "u1790095589129", "year": 1974, "artist": "Aerosmith", "title": "Get Your Wings", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-03-15"},
+{"id": "u1790089769106", "year": 1974, "artist": "Bad Company", "title": "Bad Company", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-05-24"},
+{"id": "u1790090303004", "year": 1974, "artist": "Barry White", "title": "Can't Get Enough", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1974-08-06"},
 {"id": "a0407", "year": 1974, "artist": "Big Star", "title": "Radio City", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1974-02-20"},
 {"id": "a0408", "year": 1974, "artist": "Billy Joel", "title": "Streetlife Serenade", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1974-10-11"},
 {"id": "a0409", "year": 1974, "artist": "Bob Marley and the Wailers", "title": "Natty Dread", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1974-10-25"},
+{"id": "u1790090265519", "year": 1974, "artist": "Bonnie Raitt", "title": "Streetlights", "genre": "Pop R&B", "genreMacro": "Pop", "releaseDate": "1974-09"},
 {"id": "a0410", "year": 1974, "artist": "Brian Eno", "title": "Here Come the Warm Jets", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1974-02-08"},
+{"id": "u1790095202550", "year": 1974, "artist": "Can", "title": "Soon Over Babaluma", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": "1974-11"},
+{"id": "u1790089268973", "year": 1974, "artist": "Carly Simon", "title": "Hotcakes", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1974-01-11"},
+{"id": "u1790090143572", "year": 1974, "artist": "Celia Cruz / Johnny Pacheco", "title": "Celia & Johnny", "genre": "Salsa", "genreMacro": "Latin", "releaseDate": null},
 {"id": "a0411", "year": 1974, "artist": "Chicago", "title": "Chicago VII", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-03-11"},
 {"id": "a0412", "year": 1974, "artist": "David Bowie", "title": "Diamond Dogs", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1974-05-24"},
+{"id": "u1790089313497", "year": 1974, "artist": "Dolly Parton", "title": "Jolene", "genre": "Country", "genreMacro": "Country", "releaseDate": "1974-02-08"},
 {"id": "a0413", "year": 1974, "artist": "Eagles", "title": "On the Border", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1974-03-22"},
+{"id": "u1790095690604", "year": 1974, "artist": "Elton John", "title": "Caribou", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1974-06-24"},
 {"id": "a0414", "year": 1974, "artist": "Eric Clapton", "title": "461 Ocean Boulevard", "genre": "Blues Rock", "genreMacro": "Rock", "releaseDate": "1974-07"},
 {"id": "a0415", "year": 1974, "artist": "Freddy Fender", "title": "Before the Next Teardrop Falls", "genre": "Tejano", "genreMacro": "Country", "releaseDate": null},
 {"id": "a0416", "year": 1974, "artist": "Gene Clark", "title": "No Other", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1974-09"},
 {"id": "a0417", "year": 1974, "artist": "George Harrison", "title": "Dark Horse", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1974-12-09"},
+{"id": "u1790089911982", "year": 1974, "artist": "George Jones", "title": "The Grand Tour", "genre": "Country", "genreMacro": "Country", "releaseDate": "1974-08-07"},
 {"id": "a0418", "year": 1974, "artist": "Gil Scott-Heron", "title": "Winter in America", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": null},
 {"id": "a0419", "year": 1974, "artist": "Graham Parsons", "title": "Grievous Angel", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1974-01"},
+{"id": "u1790090501974", "year": 1974, "artist": "Grateful Dead", "title": "From the Mars Hotel", "genre": "Psychedelic Rock", "genreMacro": "Rock", "releaseDate": "1974-06-27"},
 {"id": "a0420", "year": 1974, "artist": "Hall & Oates", "title": "War Babies", "genre": "Blue-Eyed Soul", "genreMacro": "Pop", "releaseDate": "1974-10"},
+{"id": "u1790090682532", "year": 1974, "artist": "Harry Nilsson", "title": "Pussy Cats", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-08-19"},
+{"id": "u1790090060252", "year": 1974, "artist": "Isaac Hayes", "title": "Truck Turner", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1974-07-08"},
+{"id": "u1790095255878", "year": 1974, "artist": "James Brown", "title": "Reality", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1974-12-19"},
 {"id": "a0421", "year": 1974, "artist": "John Lennon", "title": "Walls and Bridges", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1974-09-29"},
 {"id": "a0422", "year": 1974, "artist": "Joni Mitchell", "title": "Court and Spark", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1974-01-17"},
+{"id": "u1790089502649", "year": 1974, "artist": "Kansas", "title": "Kansas", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1974-03-08"},
+{"id": "u1790089420380", "year": 1974, "artist": "Kiss", "title": "Kiss", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1974-02-18"},
 {"id": "a0423", "year": 1974, "artist": "Kraftwerk", "title": "Autobahn", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1974-11"},
+{"id": "u1790090623784", "year": 1974, "artist": "Lou Reed", "title": "Rock 'n' Roll Animal", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1974-02"},
 {"id": "a0424", "year": 1974, "artist": "Lynyrd Skynyrd", "title": "Second Helping", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1974-04-15"},
+{"id": "u1790090468697", "year": 1974, "artist": "Merle Haggard", "title": "Presents His 30th Album", "genre": "Country", "genreMacro": "Country", "releaseDate": "1974-08"},
+{"id": "u1790095635769", "year": 1974, "artist": "Minnie Riperton", "title": "Perfect Angel", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1974-05-24"},
 {"id": "a0425", "year": 1974, "artist": "Neil Young", "title": "On the Beach", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1974-07-19"},
+{"id": "u1790095661516", "year": 1974, "artist": "Parliament", "title": "Up for the Down Stroke", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1974-07-03"},
 {"id": "a0426", "year": 1974, "artist": "Queen", "title": "Queen II", "genre": "Arena Rock", "genreMacro": "Rock", "releaseDate": "1974-03-08"},
 {"id": "a0427", "year": 1974, "artist": "Queen", "title": "Sheer Heart Attack", "genre": "Arena Rock", "genreMacro": "Rock", "releaseDate": "1974-11-08"},
 {"id": "a0428", "year": 1974, "artist": "Richard and Linda Thompson", "title": "I Want To See the Bright Lights Tonight", "genre": "Folk Rock", "genreMacro": "Rock", "releaseDate": "1974-04-30"},
+{"id": "u1790095149102", "year": 1974, "artist": "Ronnie Wood", "title": "I’ve Got My Own Album to Do", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-09-13"},
 {"id": "a0429", "year": 1974, "artist": "Rush", "title": "Rush", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1974-03-18"},
+{"id": "u1790090022874", "year": 1974, "artist": "Sparks", "title": "Kimono My House", "genre": "Glam Rock", "genreMacro": "Rock", "releaseDate": "1974-05-01"},
+{"id": "u1790089441987", "year": 1974, "artist": "Steely Dan", "title": "Pretzel Logic", "genre": "Jazz Rock", "genreMacro": "Rock", "releaseDate": "1974-02-20"},
+{"id": "u1790089948966", "year": 1974, "artist": "Supertramp", "title": "Crime of the Century", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1974-10-25"},
+{"id": "u1790090219255", "year": 1974, "artist": "Sweet", "title": "Desolation Boulevard", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1974-11-15"},
+{"id": "u1790090433373", "year": 1974, "artist": "The Rolling Stones", "title": "It’s Only Rock ‘n Roll", "genre": "Rock and Roll", "genreMacro": "Rock", "releaseDate": "1974-10-18"},
+{"id": "u1790089995776", "year": 1974, "artist": "Tom Waits", "title": "The Heart of Saturday Night", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1974-10-15"},
+{"id": "u1790090581205", "year": 1974, "artist": "Toots and the Maytals", "title": "In the Dark", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1974-09"},
+{"id": "u1790095283958", "year": 1974, "artist": "Van Morrison", "title": "It’s Too Late to Stop Now", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1974-02-01"},
+{"id": "u1790623910165", "year": 1975, "artist": "ABBA", "title": "ABBA", "genre": "Dance Pop", "genreMacro": "Pop", "releaseDate": "1975-04-21"},
 {"id": "a0430", "year": 1975, "artist": "AC/DC", "title": "High Voltage", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1975-02-17"},
 {"id": "a0431", "year": 1975, "artist": "AC/DC", "title": "T.N.T.", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1975-12-01"},
+{"id": "u1790095599769", "year": 1975, "artist": "Aerosmith", "title": "Toys in the Attic", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1975-04-08"},
 {"id": "a0432", "year": 1975, "artist": "Bob Dylan", "title": "Blood on the Tracks", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "1975-01-20"},
 {"id": "a0433", "year": 1975, "artist": "Brian Eno", "title": "Another Green World", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1975-11-14"},
 {"id": "a0434", "year": 1975, "artist": "Bruce Springsteen", "title": "Born to Run", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1975-08-25"},
@@ -983,17 +1013,28 @@ const BASE_ALBUMS = [
 {"id": "a0439", "year": 1975, "artist": "David Bowie", "title": "Young Americans", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1975-03-07"},
 {"id": "a0440", "year": 1975, "artist": "Eagles", "title": "One of These Nights", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1975-06-10"},
 {"id": "a0441", "year": 1975, "artist": "Earth, Wind & Fire", "title": "That's the Way of the World", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1975-03-15"},
+{"id": "u1790095938013", "year": 1975, "artist": "Elton John", "title": "Captain Fantastic and the Brown Dirt Cowboy", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1975-05-19"},
 {"id": "a0442", "year": 1975, "artist": "Emmylou Harris", "title": "Pieces of the Sky", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-02-07"},
 {"id": "a0443", "year": 1975, "artist": "Fleetwood Mac", "title": "Fleetwood Mac", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1975-07-11"},
+{"id": "u1790623931045", "year": 1975, "artist": "Funkadelic", "title": "Let's Take It to the Stage", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1975-04-21"},
 {"id": "a0444", "year": 1975, "artist": "George Harrison", "title": "Extra Texture (Read All About It)", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1975-09-22"},
 {"id": "a0445", "year": 1975, "artist": "Hall & Oates", "title": "Daryl Hall & John Oates", "genre": "Blue-Eyed Soul", "genreMacro": "Pop", "releaseDate": "1975-08-18"},
+{"id": "u1790624162365", "year": 1975, "artist": "Heart", "title": "Dreamboat Annie", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1975-09"},
+{"id": "u1790624036021", "year": 1975, "artist": "Jefferson Starship", "title": "Red Octopus", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1975-06-13"},
 {"id": "a0446", "year": 1975, "artist": "Jessi Colter", "title": "I'm Jessi Colter", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-01"},
 {"id": "a0447", "year": 1975, "artist": "John Lennon", "title": "Rock 'n' Roll", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1975-02-17"},
+{"id": "u1790624371045", "year": 1975, "artist": "Joni Mitchell", "title": "The Hissing of Summer Lawns", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1975-11-17"},
+{"id": "u1790623739302", "year": 1975, "artist": "Journey", "title": "Journey", "genre": "Progressive Rock", "genreMacro": "Rock", "releaseDate": "1975-04-01"},
 {"id": "a0448", "year": 1975, "artist": "Keith Jarrett", "title": "The Koln Concert", "genre": "Piano", "genreMacro": "Jazz", "releaseDate": "1975-11-30"},
 {"id": "a0449", "year": 1975, "artist": "Kraftwerk", "title": "Radio-Activity", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1975-11"},
 {"id": "a0450", "year": 1975, "artist": "Led Zeppelin", "title": "Physical Graffiti", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1975-02-24"},
 {"id": "a0451", "year": 1975, "artist": "Lynyrd Skynyrd", "title": "Nuthin' Fancy", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1975-03-24"},
+{"id": "u1790624058181", "year": 1975, "artist": "Neil Young", "title": "Tonight's the Night", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1975-06-20"},
+{"id": "u1790624341893", "year": 1975, "artist": "Neil Young / Crazy Horse", "title": "Zuma", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "1975-11-10"},
+{"id": "u1790623641558", "year": 1975, "artist": "Neu!", "title": "Neu! 75", "genre": "Krautrock", "genreMacro": "Rock", "releaseDate": "1975-02"},
+{"id": "u1790623888157", "year": 1975, "artist": "Parliament", "title": "Chocolate City", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1975-04-08"},
 {"id": "a0452", "year": 1975, "artist": "Patti Smith", "title": "Horses", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1975-11-10"},
+{"id": "u1790624277677", "year": 1975, "artist": "Paul Simon", "title": "Still Crazy After All These Years", "genre": "Folk Rock", "genreMacro": "Rock", "releaseDate": "1975-10-17"},
 {"id": "a0453", "year": 1975, "artist": "Pink Floyd", "title": "Wish You Were Here", "genre": "Progressive Rock", "genreMacro": "Rock", "releaseDate": "1975-09-12"},
 {"id": "a0454", "year": 1975, "artist": "Queen", "title": "A Night at the Opera", "genre": "Arena Rock", "genreMacro": "Rock", "releaseDate": "1975-11-28"},
 {"id": "a0455", "year": 1975, "artist": "Rush", "title": "Caress of Steel", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1975-09-24"},
@@ -1001,7 +1042,7 @@ const BASE_ALBUMS = [
 {"id": "a0457", "year": 1975, "artist": "The Who", "title": "The Who By Numbers", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1975-10-03"},
 {"id": "a0458", "year": 1975, "artist": "Tom Waits", "title": "Nighthawks At The Diner", "genre": "Spoken Word", "genreMacro": "Jazz", "releaseDate": "1975-10-21"},
 {"id": "a0459", "year": 1975, "artist": "Waylon Jennings", "title": "Dreaming My Dreams", "genre": "Outlaw Country", "genreMacro": "Country", "releaseDate": "1975-06"},
-{"id": "a0460", "year": 1975, "artist": "Willie Nelson", "title": "Red Headed Stranger", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-05-23"},
+{"id": "a0460", "year": 1975, "artist": "Willie Nelson", "title": "Red Headed Stranger", "genre": "Country", "genreMacro": "Country", "releaseDate": "1975-05"},
 {"id": "a0461", "year": 1975, "artist": "Wings", "title": "Venus and Mars", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1975-05-27"},
 {"id": "a0462", "year": 1976, "artist": "AC/DC", "title": "Dirty Deeds Done Dirt Cheap", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1976-09-20"},
 {"id": "a0463", "year": 1976, "artist": "Billy Joel", "title": "Turnstiles", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1976-05-19"},
@@ -1015,6 +1056,7 @@ const BASE_ALBUMS = [
 {"id": "a0471", "year": 1976, "artist": "Jaco Pastorius", "title": "Jaco Pastorius", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1976-04"},
 {"id": "a0472", "year": 1976, "artist": "Joni Mitchell", "title": "Hejira", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "1976-11-22"},
 {"id": "a0473", "year": 1976, "artist": "Jorge Ben", "title": "Africa Brasil", "genre": "MPB", "genreMacro": "Funk & Soul", "releaseDate": null},
+{"id": "u1790623756125", "year": 1976, "artist": "Journey", "title": "Look into the Future", "genre": "Progressive Rock", "genreMacro": "Rock", "releaseDate": "1976-01"},
 {"id": "a0474", "year": 1976, "artist": "Led Zeppelin", "title": "Presence", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1976-03-31"},
 {"id": "a0475", "year": 1976, "artist": "Lynyrd Skynyrd", "title": "Gimme Back My Bullets", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1976-02-02"},
 {"id": "a0476", "year": 1976, "artist": "Parliament", "title": "Mothership Connection", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1976-12-15"},
@@ -1028,6 +1070,7 @@ const BASE_ALBUMS = [
 {"id": "a0484", "year": 1976, "artist": "Stevie Wonder", "title": "Songs in the Key of Life", "genre": "Soul", "genreMacro": "Funk & Soul", "releaseDate": "1976-09-28"},
 {"id": "a0485", "year": 1976, "artist": "The Modern Lovers", "title": "The Modern Lovers", "genre": "Proto Punk", "genreMacro": "Rock", "releaseDate": "1976-06"},
 {"id": "a0486", "year": 1976, "artist": "The Ramones", "title": "Ramones", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1976-04-23"},
+{"id": "u1790013468844", "year": 1976, "artist": "Thin Lizzy", "title": "Jailbreak", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1976-03-26"},
 {"id": "a0487", "year": 1976, "artist": "Tom Petty & the Heartbreakers", "title": "Tom Petty & the Heartbreakers", "genre": "Heartland Rock", "genreMacro": "Rock", "releaseDate": "1976-11-09"},
 {"id": "a0488", "year": 1976, "artist": "Wings", "title": "Wings at the Speed of Sound", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1976-03-26"},
 {"id": "a0489", "year": 1977, "artist": "Bee Gees", "title": "Saturday Night Fever", "genre": "Disco", "genreMacro": "Funk & Soul", "releaseDate": "1977-11-15"},
@@ -1039,6 +1082,9 @@ const BASE_ALBUMS = [
 {"id": "a0495", "year": 1977, "artist": "David Bowie", "title": "Low", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1977-01-14"},
 {"id": "a0496", "year": 1977, "artist": "Elvis Costello", "title": "My Aim is True", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1977-07-22"},
 {"id": "a0497", "year": 1977, "artist": "Fleetwood Mac", "title": "Rumours", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1977-02-04"},
+{"id": "u1790624186101", "year": 1977, "artist": "Heart", "title": "Little Queen", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1977-05-14"},
+{"id": "u1790624174718", "year": 1977, "artist": "Heart", "title": "Magazine", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1977-04-19"},
+{"id": "u1790623771134", "year": 1977, "artist": "Journey", "title": "Next", "genre": "Progressive Rock", "genreMacro": "Rock", "releaseDate": "1977-02-09"},
 {"id": "a0498", "year": 1977, "artist": "Kraftwerk", "title": "Trans-Europe Express", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1977-03"},
 {"id": "a0499", "year": 1977, "artist": "Lynyrd Skynyrd", "title": "Street Survivors", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1977-10-17"},
 {"id": "a0500", "year": 1977, "artist": "Muddy Waters", "title": "Hard Again", "genre": "Chicago Blues", "genreMacro": "R&B", "releaseDate": "1977-01-10"},
@@ -1068,11 +1114,14 @@ const BASE_ALBUMS = [
 {"id": "a0524", "year": 1978, "artist": "Eddie Palmieri", "title": "Lucumi, Macumba, Voodoo", "genre": "Afro Cuban Jazz", "genreMacro": "Jazz", "releaseDate": null},
 {"id": "a0525", "year": 1978, "artist": "Elvis Costello", "title": "This Year's Model", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1978-03-17"},
 {"id": "a0526", "year": 1978, "artist": "Funkadelic", "title": "One Nation Under a Groove", "genre": "Funk", "genreMacro": "Funk & Soul", "releaseDate": "1978-09-08"},
+{"id": "u1790624199637", "year": 1978, "artist": "Heart", "title": "Dog and Butterfly", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1978-10-07"},
 {"id": "a0527", "year": 1978, "artist": "John Prine", "title": "Bruised Orange", "genre": "Country Folk", "genreMacro": "Country", "releaseDate": null},
+{"id": "u1790623782526", "year": 1978, "artist": "Journey", "title": "Infinity", "genre": "Progressive Rock", "genreMacro": "Rock", "releaseDate": "1978-01-30"},
 {"id": "a0528", "year": 1978, "artist": "Judas Priest", "title": "Stained Class", "genre": "Heavy Metal", "genreMacro": "Metal", "releaseDate": "1978-02-10"},
 {"id": "a0529", "year": 1978, "artist": "Kate Bush", "title": "The Kick Inside", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1978-02-17"},
 {"id": "a0530", "year": 1978, "artist": "Kenny Rogers", "title": "The Gambler", "genre": "Country", "genreMacro": "Country", "releaseDate": "1978-11"},
 {"id": "a0531", "year": 1978, "artist": "Kraftwerk", "title": "Die Mensch-Maschine", "genre": "Synth Pop", "genreMacro": "Electronic", "releaseDate": "1978-05-19"},
+{"id": "u1790013283174", "year": 1978, "artist": "Little Feat", "title": "Waiting for Columbus", "genre": "Southern Rock", "genreMacro": "Rock", "releaseDate": "1978-02-10"},
 {"id": "a0532", "year": 1978, "artist": "Louis Moholo Octet", "title": "Spirits Rejoice!", "genre": "Avant Garde Jazz", "genreMacro": "Jazz", "releaseDate": null},
 {"id": "a0533", "year": 1978, "artist": "Neil Young", "title": "Comes a Time", "genre": "Country Folk", "genreMacro": "Country", "releaseDate": "1978-09-29"},
 {"id": "a0534", "year": 1978, "artist": "Patti Smith", "title": "Easter", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1978-03-03"},
@@ -1093,6 +1142,7 @@ const BASE_ALBUMS = [
 {"id": "a0549", "year": 1978, "artist": "The Police", "title": "Outlandos d'Amour", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1978-11-17"},
 {"id": "a0550", "year": 1978, "artist": "The Ramones", "title": "Road to Ruin", "genre": "Punk", "genreMacro": "Punk", "releaseDate": "1978-03-22"},
 {"id": "a0551", "year": 1978, "artist": "The Who", "title": "Who Are You", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1978-08-21"},
+{"id": "u1790013482160", "year": 1978, "artist": "Thin Lizzy", "title": "Live and Dangerous", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1978-06-02"},
 {"id": "a0552", "year": 1978, "artist": "Tom Petty & the Heartbreakers", "title": "You're Gonna Get It!", "genre": "Heartland Rock", "genreMacro": "Rock", "releaseDate": "1978-05-02"},
 {"id": "a0553", "year": 1978, "artist": "Townes Van Zandt", "title": "Flyin' Shoes", "genre": "Outlaw Country", "genreMacro": "Country", "releaseDate": "1978-05"},
 {"id": "a0554", "year": 1978, "artist": "Van Halen", "title": "Van Halen", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1978-02-10"},
@@ -1124,6 +1174,7 @@ const BASE_ALBUMS = [
 {"id": "a0580", "year": 1979, "artist": "Graham Parker & the Rumour", "title": "Squeezing Out Sparks", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1979-03"},
 {"id": "a0581", "year": 1979, "artist": "Joe Jackson", "title": "Look Sharp!", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1979-01-29"},
 {"id": "a0582", "year": 1979, "artist": "Joni Mitchell", "title": "Mingus", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1979-06-13"},
+{"id": "u1790623797829", "year": 1979, "artist": "Journey", "title": "Evolution", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1979-03-23"},
 {"id": "a0583", "year": 1979, "artist": "Joy Division", "title": "Unknown Pleasures", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1979-06-15"},
 {"id": "a0584", "year": 1979, "artist": "Led Zeppelin", "title": "In Through the Out Door", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1979-08-22"},
 {"id": "a0585", "year": 1979, "artist": "Marianne Faithfull", "title": "Broken English", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1979-11-02"},
@@ -1174,8 +1225,10 @@ const BASE_ALBUMS = [
 {"id": "a0630", "year": 1980, "artist": "Elvis Costello & the Attractions", "title": "Get Happy!!", "genre": "Power Pop", "genreMacro": "Rock", "releaseDate": "1980-02-15"},
 {"id": "a0631", "year": 1980, "artist": "George Jones", "title": "I Am What I Am", "genre": "Country", "genreMacro": "Country", "releaseDate": "1980-09-08"},
 {"id": "a0632", "year": 1980, "artist": "Hall & Oates", "title": "Voices", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1981-07-29"},
+{"id": "u1790624215309", "year": 1980, "artist": "Heart", "title": "Bebe le Strange", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1980-02-14"},
 {"id": "a0633", "year": 1980, "artist": "Huey Lewis and the News", "title": "Huey Lewis and the News", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1980-06-25"},
 {"id": "a0634", "year": 1980, "artist": "John Lennon", "title": "Double Fantasy", "genre": "Soft Rock", "genreMacro": "Rock", "releaseDate": "1980-11-17"},
+{"id": "u1790623808781", "year": 1980, "artist": "Journey", "title": "Departure", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1980-02-29"},
 {"id": "a0635", "year": 1980, "artist": "Joy Division", "title": "Closer", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1980-07-18"},
 {"id": "a0636", "year": 1980, "artist": "Killing Joke", "title": "Killing Joke", "genre": "Post-Punk", "genreMacro": "Punk", "releaseDate": "1980-10"},
 {"id": "a0637", "year": 1980, "artist": "Peter Gabriel", "title": "Peter Gabriel (III)", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "1980-05-30"},
@@ -1199,6 +1252,7 @@ const BASE_ALBUMS = [
 {"id": "a0655", "year": 1981, "artist": "George Harrison", "title": "Somewhere in England", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1981-06-01"},
 {"id": "a0656", "year": 1981, "artist": "Glenn Branca", "title": "The Ascension", "genre": "Noise Rock", "genreMacro": "Rock", "releaseDate": "1981-11"},
 {"id": "a0657", "year": 1981, "artist": "Grace Jones", "title": "Nightclubbing", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1981-05-11"},
+{"id": "u1790623821150", "year": 1981, "artist": "Journey", "title": "Escape", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1981-07-20"},
 {"id": "a0658", "year": 1981, "artist": "Kraftwerk", "title": "Computer World", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1981-05-11"},
 {"id": "a0659", "year": 1981, "artist": "Masayoshi Tanaka", "title": "THE RAINBOW GOBLINS", "genre": "Jazz Fusion", "genreMacro": "Jazz", "releaseDate": "1981-03-10"},
 {"id": "a0660", "year": 1981, "artist": "Meredith Monk", "title": "Dolmen Music", "genre": "Avant-Garde Classical", "genreMacro": "Classical", "releaseDate": null},
@@ -1262,6 +1316,7 @@ const BASE_ALBUMS = [
 {"id": "a0718", "year": 1983, "artist": "ESG", "title": "Come Away with ESG", "genre": "Avant Funk", "genreMacro": "Funk & Soul", "releaseDate": null},
 {"id": "a0719", "year": 1983, "artist": "Huey Lewis and the News", "title": "Sports", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1983-09-15"},
 {"id": "a0720", "year": 1983, "artist": "Hüsker Dü", "title": "Everything Falls Apart", "genre": "Hardcore Punk", "genreMacro": "Punk", "releaseDate": "1983-01-01"},
+{"id": "u1790623837934", "year": 1983, "artist": "Journey", "title": "Frontiers", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1983-02-01"},
 {"id": "a0721", "year": 1983, "artist": "King Sunny Ade", "title": "Synchro System", "genre": "Juju", "genreMacro": "African", "releaseDate": null},
 {"id": "a0722", "year": 1983, "artist": "Madonna", "title": "Madonna", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1983-07-27"},
 {"id": "a0723", "year": 1983, "artist": "Metallica", "title": "Kill 'Em All", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "1983-07-25"},
@@ -1318,6 +1373,7 @@ const BASE_ALBUMS = [
 {"id": "a0774", "year": 1985, "artist": "The Cure", "title": "The Head on the Door", "genre": "New Wave", "genreMacro": "Rock", "releaseDate": "1985-08-30"},
 {"id": "a0775", "year": 1985, "artist": "The Jesus and Mary Chain", "title": "Psychocandy", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1985-11-18"},
 {"id": "a0776", "year": 1985, "artist": "The Mekons", "title": "Fear and Whiskey", "genre": "Alternative Country", "genreMacro": "Country", "releaseDate": null},
+{"id": "u1790013241241", "year": 1985, "artist": "The Replacements", "title": "The Shit Hits the Fans", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1985-01-25"},
 {"id": "a0777", "year": 1985, "artist": "The Replacements", "title": "Tim", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1985-09-18"},
 {"id": "a0778", "year": 1985, "artist": "The Smiths", "title": "Meat Is Murder", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1985-02-11"},
 {"id": "a0779", "year": 1985, "artist": "Tom Petty & the Heartbreakers", "title": "Southern Accents", "genre": "Heartland Rock", "genreMacro": "Rock", "releaseDate": "1985-03-26"},
@@ -1327,6 +1383,7 @@ const BASE_ALBUMS = [
 {"id": "a0783", "year": 1986, "artist": "Boston", "title": "Third Stage", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1986-09-24"},
 {"id": "a0784", "year": 1986, "artist": "Dwight Yoakam", "title": "Guitars, Cadillacs, Etc., Etc.", "genre": "Country", "genreMacro": "Country", "releaseDate": "1986-03-19"},
 {"id": "a0785", "year": 1986, "artist": "Janet Jackson", "title": "Control", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1986-02-04"},
+{"id": "u1790623851389", "year": 1986, "artist": "Journey", "title": "Raised on Radio", "genre": "Prog Rock", "genreMacro": "Rock", "releaseDate": "1986-04-21"},
 {"id": "a0786", "year": 1986, "artist": "Madonna", "title": "True Blue", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1986-06-30"},
 {"id": "a0787", "year": 1986, "artist": "Metallica", "title": "Master of Puppets", "genre": "Thrash Metal", "genreMacro": "Metal", "releaseDate": "1986-03-03"},
 {"id": "a0788", "year": 1986, "artist": "New Order", "title": "Brotherhood", "genre": "Synth-Pop", "genreMacro": "Pop", "releaseDate": "1986-09-29"},
@@ -1389,12 +1446,15 @@ const BASE_ALBUMS = [
 {"id": "a0845", "year": 1989, "artist": "Bonnie Raitt", "title": "Nick of Time", "genre": "Americana", "genreMacro": "Rock", "releaseDate": "1989-03-21"},
 {"id": "a0846", "year": 1989, "artist": "Boredoms", "title": "Soul Discharge", "genre": "Experimental Rock", "genreMacro": "Rock", "releaseDate": "1989-12"},
 {"id": "a0847", "year": 1989, "artist": "De La Soul", "title": "3 Feet High and Rising", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1989-03-03"},
+{"id": "u1790258768188", "year": 1989, "artist": "Garth Brooks", "title": "Garth Brooks", "genre": "Country", "genreMacro": "Country", "releaseDate": "1989-04-12"},
 {"id": "a0848", "year": 1989, "artist": "John Lee Hooker", "title": "The Healer", "genre": "Blues", "genreMacro": "R&B", "releaseDate": "1989-09"},
 {"id": "a0849", "year": 1989, "artist": "Kate Bush", "title": "The Sensual World", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1989-10-16"},
 {"id": "a0850", "year": 1989, "artist": "Madonna", "title": "Like A Prayer", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1989-03-20"},
 {"id": "a0851", "year": 1989, "artist": "Nine Inch Nails", "title": "Pretty Hate Machine", "genre": "Industrial", "genreMacro": "Electronic", "releaseDate": "1989-10-20"},
 {"id": "a0852", "year": 1989, "artist": "Nirvana", "title": "Bleach", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1989-06-15"},
+{"id": "u1790013726260", "year": 1989, "artist": "Peter Murphy", "title": "Deep", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1989-12-19"},
 {"id": "a0853", "year": 1989, "artist": "Phil Collins", "title": "...But Seriously", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "1989-11-20"},
+{"id": "u1790013546099", "year": 1989, "artist": "Phish", "title": "Junta", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "1989-05-08"},
 {"id": "a0854", "year": 1989, "artist": "Red Hot Chili Peppers", "title": "Mother's Milk", "genre": "Funk Rock", "genreMacro": "Rock", "releaseDate": "1989-08-16"},
 {"id": "a0855", "year": 1989, "artist": "Selena", "title": "Selena", "genre": "Tejano", "genreMacro": "Latin", "releaseDate": "1989-10-17"},
 {"id": "a0856", "year": 1989, "artist": "Spacemen 3", "title": "Playing with Fire", "genre": "Psychedelic Rock", "genreMacro": "Rock", "releaseDate": "1989-02-27"},
@@ -1425,6 +1485,7 @@ const BASE_ALBUMS = [
 {"id": "a0881", "year": 1990, "artist": "Megadeath", "title": "Rust in Peace", "genre": "Thrash Metal", "genreMacro": "Metal", "releaseDate": "1990-09-24"},
 {"id": "a0882", "year": 1990, "artist": "Neil Young / Crazy Horse", "title": "Ragged Glory", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "1990-09-10"},
 {"id": "a0883", "year": 1990, "artist": "Nick Cave & the Bad Seeds", "title": "The Good Son", "genre": "Singer-Songwriter", "genreMacro": "Rock", "releaseDate": "1990-04-16"},
+{"id": "u1790013556939", "year": 1990, "artist": "Phish", "title": "Lawn Boy", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "1990-03-21"},
 {"id": "a0884", "year": 1990, "artist": "Pixies", "title": "Bossanova", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1990-08-13"},
 {"id": "a0885", "year": 1990, "artist": "Public Enemy", "title": "Fear of a Black Planet", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1990-04-10"},
 {"id": "a0886", "year": 1990, "artist": "Ride", "title": "Nowhere", "genre": "Shoegaze", "genreMacro": "Rock", "releaseDate": "1990-10-15"},
@@ -1446,9 +1507,11 @@ const BASE_ALBUMS = [
 {"id": "a0902", "year": 1991, "artist": "2pac", "title": "2Pacalypse Now", "genre": "West Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1991-11-12"},
 {"id": "a0903", "year": 1991, "artist": "A Tribe Called Quest", "title": "The Low End Theory", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1991-09-24"},
 {"id": "a0904", "year": 1991, "artist": "Anton Webern / Pierre Boulez", "title": "Complete Works Opp 1-31", "genre": "Serialism", "genreMacro": "Classical", "releaseDate": "1991-02-26"},
+{"id": "u1790013411257", "year": 1991, "artist": "Boogie Down Productions", "title": "Live Hardcore Worldwide", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1991-03-12"},
 {"id": "a0905", "year": 1991, "artist": "Boyz II Men", "title": "Cooleyhighharmony", "genre": "New Jack Swing", "genreMacro": "R&B", "releaseDate": "1991-04-30"},
 {"id": "a0906", "year": 1991, "artist": "Dinosaur Jr.", "title": "Fossils", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1991-08"},
 {"id": "a0907", "year": 1991, "artist": "Dinosaur Jr.", "title": "Green Mind", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1991-02-19"},
+{"id": "u1790258780452", "year": 1991, "artist": "Garth Brooks", "title": "Ropin' the Wind", "genre": "Country", "genreMacro": "Country", "releaseDate": "1991-09-02"},
 {"id": "a0908", "year": 1991, "artist": "Green Day", "title": "Kerplunk", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1991-12-17"},
 {"id": "a0909", "year": 1991, "artist": "Guns N' Roses", "title": "Use Your Illusion I", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1991-09-17"},
 {"id": "a0910", "year": 1991, "artist": "Guns N' Roses", "title": "Use Your Illusion II", "genre": "Hard Rock", "genreMacro": "Rock", "releaseDate": "1991-09-17"},
@@ -1482,10 +1545,12 @@ const BASE_ALBUMS = [
 {"id": "a0938", "year": 1992, "artist": "Bruce Springsteen", "title": "Lucky Town", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1992-03-27"},
 {"id": "a0939", "year": 1992, "artist": "Cheb Khaled", "title": "Khaled", "genre": "Rai", "genreMacro": "Middle Eastern", "releaseDate": null},
 {"id": "a0940", "year": 1992, "artist": "Dr. Dre", "title": "The Chronic", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1992-12-15"},
+{"id": "u1790258790780", "year": 1992, "artist": "Garth Brooks", "title": "Beyond the Season", "genre": "Country", "genreMacro": "Country", "releaseDate": "1992-08-25"},
 {"id": "a0941", "year": 1992, "artist": "Henryk Gorecki", "title": "Symphony No. 3 (Symphony of Sorrowful Songs)", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": null},
 {"id": "a0942", "year": 1992, "artist": "Jonathan Richman", "title": "I, Jonathan", "genre": "Lo Fi", "genreMacro": "Rock", "releaseDate": null},
 {"id": "a0943", "year": 1992, "artist": "Madonna", "title": "Erotica", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1992-10-19"},
 {"id": "a0944", "year": 1992, "artist": "Pavement", "title": "Slanted and Enchanted", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1992-04-20"},
+{"id": "u1790013571709", "year": 1992, "artist": "Phish", "title": "A Picture of Nectar", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "1992-02-12"},
 {"id": "a0945", "year": 1992, "artist": "PJ Harvey", "title": "Dry", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1992-03-30"},
 {"id": "a0946", "year": 1992, "artist": "R.E.M.", "title": "Automatic for the People", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1992-10-05"},
 {"id": "a0947", "year": 1992, "artist": "Rage Against the Machine", "title": "Rage Against the Machine", "genre": "Rap Metal", "genreMacro": "Metal", "releaseDate": "1992-11-03"},
@@ -1522,6 +1587,7 @@ const BASE_ALBUMS = [
 {"id": "a0978", "year": 1994, "artist": "Beastie Boys", "title": "Ill Communication", "genre": "Punk Rap", "genreMacro": "Hip-Hop", "releaseDate": "1994-05-23"},
 {"id": "a0979", "year": 1994, "artist": "Blackstreet", "title": "Blackstreet", "genre": "R&B", "genreMacro": "R&B", "releaseDate": "1994-06-21"},
 {"id": "a0980", "year": 1994, "artist": "Boyz II Men", "title": "II", "genre": "New Jack Swing", "genreMacro": "R&B", "releaseDate": "1994-08-30"},
+{"id": "u1790258517148", "year": 1994, "artist": "Dave Matthews Band", "title": "Under the Table and Dreaming", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1994-09-27"},
 {"id": "a0981", "year": 1994, "artist": "Elliott Smith", "title": "Roman Candle", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1994-07-14"},
 {"id": "a0982", "year": 1994, "artist": "G. Love and Special Sauce", "title": "G. Love and Special Sauce", "genre": "Blues", "genreMacro": "R&B", "releaseDate": null},
 {"id": "a0983", "year": 1994, "artist": "Green Day", "title": "Dookie", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1994-02-01"},
@@ -1549,12 +1615,15 @@ const BASE_ALBUMS = [
 {"id": "a1005", "year": 1995, "artist": "Alanis Morissette", "title": "Jagged Little Pill", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1995-06-13"},
 {"id": "a1006", "year": 1995, "artist": "Alice in Chains", "title": "Alice in Chains", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "1995-11-07"},
 {"id": "a1007", "year": 1995, "artist": "Bjork", "title": "Post", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1995-06-12"},
+{"id": "u1790012980087", "year": 1995, "artist": "Blink-182", "title": "Cheshire Cat", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1995-02-17"},
 {"id": "a1008", "year": 1995, "artist": "Bruce Springsteen", "title": "The Ghost of Tom Joad", "genre": "Americana", "genreMacro": "Rock", "releaseDate": "1995-11-21"},
 {"id": "a1009", "year": 1995, "artist": "Buju Banton", "title": "'Til Shiloh", "genre": "Reggae", "genreMacro": "Reggae", "releaseDate": "1995-06-06"},
 {"id": "a1010", "year": 1995, "artist": "Elliott Smith", "title": "Elliott Smith", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1995-07-21"},
 {"id": "a1011", "year": 1995, "artist": "Garbage", "title": "Garbage", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1995-08-15"},
+{"id": "u1790258829683", "year": 1995, "artist": "Garth Brooks", "title": "Fresh Horses", "genre": "Country", "genreMacro": "Country", "releaseDate": "1995-11-21"},
 {"id": "a1012", "year": 1995, "artist": "Goldie", "title": "Timeless", "genre": "Drum and Bass", "genreMacro": "Electronic", "releaseDate": "1995-09-25"},
 {"id": "a1013", "year": 1995, "artist": "GZA", "title": "Liquid Swords", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1995-11-07"},
+{"id": "u1790012847240", "year": 1995, "artist": "Incubus", "title": "Fungus Amongus", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1995-11-01"},
 {"id": "a1014", "year": 1995, "artist": "Mariah Carey", "title": "Daydream", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "1995-09-26"},
 {"id": "a1015", "year": 1995, "artist": "Mobb Deep", "title": "The Infamous", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1995-04-25"},
 {"id": "a1016", "year": 1995, "artist": "No Doubt", "title": "Tragic Kingdom", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1995-10-10"},
@@ -1572,6 +1641,7 @@ const BASE_ALBUMS = [
 {"id": "a1028", "year": 1996, "artist": "Belle and Sebastian", "title": "If You're Feeling Sinister", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "1996-11-18"},
 {"id": "a1029", "year": 1996, "artist": "Belle and Sebastian", "title": "Tigermilk", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "1996-06-06"},
 {"id": "a1030", "year": 1996, "artist": "Counting Crows", "title": "Recovering the Satellites", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1996-10-15"},
+{"id": "u1790258525589", "year": 1996, "artist": "Dave Matthews Band", "title": "Crash", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1996-04-30"},
 {"id": "a1031", "year": 1996, "artist": "DJ Shadow", "title": "Endtroducing.....", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1996-09-16"},
 {"id": "a1032", "year": 1996, "artist": "Fiona Apple", "title": "Tidal", "genre": "Alt Pop", "genreMacro": "Pop", "releaseDate": "1996-07-23"},
 {"id": "a1033", "year": 1996, "artist": "Fugees", "title": "The Score", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1996-02-13"},
@@ -1582,6 +1652,7 @@ const BASE_ALBUMS = [
 {"id": "a1038", "year": 1996, "artist": "Modest Mouse", "title": "This Is a Long Drive for Someone with Nothing to Think About", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1996-04-16"},
 {"id": "a1039", "year": 1996, "artist": "Neutral Milk Hotel", "title": "On Avery Island", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1996-03-26"},
 {"id": "a1040", "year": 1996, "artist": "OutKast", "title": "ATLiens", "genre": "Southern Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1996-08-27"},
+{"id": "u1790013584486", "year": 1996, "artist": "Phish", "title": "Billy Breathes", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "1996-10-15"},
 {"id": "a1041", "year": 1996, "artist": "R.E.M.", "title": "New Adventures in Hi-Fi", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1996-09-09"},
 {"id": "a1042", "year": 1996, "artist": "Silver Jews", "title": "The Natural Bridge", "genre": "Slacker Rock", "genreMacro": "Rock", "releaseDate": "1996-10-01"},
 {"id": "a1043", "year": 1996, "artist": "Sixteen Horsepower", "title": "Sackcloth 'n' Ashes", "genre": "Gothic Country", "genreMacro": "Country", "releaseDate": "1996-02-06"},
@@ -1593,12 +1664,16 @@ const BASE_ALBUMS = [
 {"id": "a1049", "year": 1996, "artist": "Weezer", "title": "Pinkerton", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1996-09-24"},
 {"id": "a1050", "year": 1996, "artist": "Wilco", "title": "Being There", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "1996-10-29"},
 {"id": "a1051", "year": 1997, "artist": "Bjork", "title": "Homogenic", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "1997-09-22"},
+{"id": "u1790012993221", "year": 1997, "artist": "Blink-182", "title": "Dude Ranch", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1997-06-17"},
 {"id": "a1052", "year": 1997, "artist": "Buena Vista Social Club", "title": "Buena Vista Social Club", "genre": "Son cubano", "genreMacro": "World", "releaseDate": "1997-06-23"},
+{"id": "u1790258882668", "year": 1997, "artist": "Creed", "title": "My Own Prison", "genre": "Post Grunge", "genreMacro": "Rock", "releaseDate": "1997-04-14"},
 {"id": "a1053", "year": 1997, "artist": "Daft Punk", "title": "Homework", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1997-01-20"},
 {"id": "a1054", "year": 1997, "artist": "Dispatch", "title": "Bang Bang", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "1997-09-01"},
 {"id": "a1055", "year": 1997, "artist": "Elliott Smith", "title": "Either/Or", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1997-02-25"},
+{"id": "u1790258836523", "year": 1997, "artist": "Garth Brooks", "title": "Sevens", "genre": "Country", "genreMacro": "Country", "releaseDate": "1997-11-25"},
 {"id": "a1056", "year": 1997, "artist": "Green Day", "title": "Nimrod", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "1997-10-14"},
 {"id": "a1057", "year": 1997, "artist": "Guster", "title": "Goldfly", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1997-03-04"},
+{"id": "u1790012861392", "year": 1997, "artist": "Incubus", "title": "S.C.I.E.N.C.E.", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1997-09-09"},
 {"id": "a1058", "year": 1997, "artist": "Jay-Z", "title": "In My Lifetime, Vol. 1", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-11-04"},
 {"id": "a1059", "year": 1997, "artist": "Mariah Carey", "title": "Butterfly", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "1997-09-10"},
 {"id": "a1060", "year": 1997, "artist": "Missy Elliott", "title": "Supa Dupa Fly", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-07-15"},
@@ -1612,6 +1687,7 @@ const BASE_ALBUMS = [
 {"id": "a1068", "year": 1997, "artist": "Spiritualized", "title": "Ladies and Gentlemen We Are Floating in Space", "genre": "Space Rock", "genreMacro": "Rock", "releaseDate": "1997-06-16"},
 {"id": "a1069", "year": 1997, "artist": "The Notorious B.I.G.", "title": "Life After Death", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-03-25"},
 {"id": "a1070", "year": 1997, "artist": "The Prodigy", "title": "The Fat of the Land", "genre": "Big Beat", "genreMacro": "Electronic", "releaseDate": "1997-06-30"},
+{"id": "u1790013127050", "year": 1997, "artist": "Third Eye Blind", "title": "Third Eye Blind", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1997-04-08"},
 {"id": "a1071", "year": 1997, "artist": "U2", "title": "Pop", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "1997-03-03"},
 {"id": "a1072", "year": 1997, "artist": "Wu-Tang Clan", "title": "Wu-Tang Forever", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1997-06-03"},
 {"id": "a1073", "year": 1998, "artist": "A Tribe Called Quest", "title": "The Love Movement", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1998-09-29"},
@@ -1625,7 +1701,9 @@ const BASE_ALBUMS = [
 {"id": "a1081", "year": 1998, "artist": "Boards of Canada", "title": "Music Has the Right to Children", "genre": "IDM", "genreMacro": "Electronic", "releaseDate": "1998-04-20"},
 {"id": "a1082", "year": 1998, "artist": "Bright Eyes", "title": "Letting Off the Happiness", "genre": "Singer-Songwriter", "genreMacro": "Rock", "releaseDate": "1998-11-02"},
 {"id": "a1083", "year": 1998, "artist": "Cornelius", "title": "Fantasma", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "1998-04-08"},
+{"id": "u1790258538196", "year": 1998, "artist": "Dave Matthews Band", "title": "Before These Crowded Streets", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1998-04-28"},
 {"id": "a1084", "year": 1998, "artist": "Death Cab for Cutie", "title": "Something About Airplanes", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1998-08-18"},
+{"id": "u1790258613028", "year": 1998, "artist": "Destiny's Child", "title": "Destiny's Child", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "1998-02-17"},
 {"id": "a1085", "year": 1998, "artist": "Elliott Smith", "title": "XO", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "1998-08-25"},
 {"id": "a1086", "year": 1998, "artist": "Faith Hill", "title": "Faith", "genre": "Country", "genreMacro": "Country", "releaseDate": "1998-04-21"},
 {"id": "a1087", "year": 1998, "artist": "Fatboy Slim", "title": "You've Come a Long Way Baby", "genre": "Big Beat", "genreMacro": "Electronic", "releaseDate": "1998-10-19"},
@@ -1670,11 +1748,14 @@ const BASE_ALBUMS = [
 {"id": "a1126", "year": 1999, "artist": "Britney Spears", "title": "...Baby One More Time", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "1999-01-12"},
 {"id": "a1127", "year": 1999, "artist": "Built to Spill", "title": "Keep It Like a Secret", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1999-02-02"},
 {"id": "a1128", "year": 1999, "artist": "Counting Crows", "title": "This Desert Life", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1999-11-02"},
+{"id": "u1790258896756", "year": 1999, "artist": "Creed", "title": "Human Clay", "genre": "Post Grunge", "genreMacro": "Rock", "releaseDate": "1999-09-28"},
+{"id": "u1790258629516", "year": 1999, "artist": "Destiny's Child", "title": "The Writing's on the Wall", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "1999-07-27"},
 {"id": "a1129", "year": 1999, "artist": "Dr. Dre", "title": "2001", "genre": "G-Funk", "genreMacro": "Hip-Hop", "releaseDate": "1999-11-16"},
 {"id": "a1130", "year": 1999, "artist": "Eminem", "title": "The Slim Shady LP", "genre": "Horrorcore", "genreMacro": "Hip-Hop", "releaseDate": "1999-02-23"},
 {"id": "a1131", "year": 1999, "artist": "Fiona Apple", "title": "When the Pawn...", "genre": "Singer-Songwriter", "genreMacro": "Pop", "releaseDate": "1999-11-09"},
 {"id": "a1132", "year": 1999, "artist": "Gustavo Cerati", "title": "Bocanada", "genre": "Downtempo", "genreMacro": "Electronic", "releaseDate": "1999-06-28"},
 {"id": "a1133", "year": 1999, "artist": "Guster", "title": "Lost and Gone Forever", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "1999-09-28"},
+{"id": "u1790012871890", "year": 1999, "artist": "Incubus", "title": "Make Yourself", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1999-10-26"},
 {"id": "a1134", "year": 1999, "artist": "Jay-Z", "title": "Vol. 3 ... Life and Times of S. Carter", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "1999-12-28"},
 {"id": "a1135", "year": 1999, "artist": "MF DOOM", "title": "Operation: Doomsday", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "1999-10-19"},
 {"id": "a1136", "year": 1999, "artist": "Moby", "title": "Play", "genre": "Techno", "genreMacro": "Electronic", "releaseDate": "1999-05-17"},
@@ -1696,6 +1777,7 @@ const BASE_ALBUMS = [
 {"id": "a1152", "year": 1999, "artist": "The Magnetic Fields", "title": "69 Love Songs", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "1999-09-07"},
 {"id": "a1153", "year": 1999, "artist": "The Roots", "title": "Things Fall Apart", "genre": "Jazz Rap", "genreMacro": "Hip-Hop", "releaseDate": "1999-02-23"},
 {"id": "a1154", "year": 1999, "artist": "The White Stripes", "title": "The White Stripes", "genre": "Blues Rock", "genreMacro": "Rock", "releaseDate": "1999-06-15"},
+{"id": "u1790013139553", "year": 1999, "artist": "Third Eye Blind", "title": "Blue", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "1999-11-23"},
 {"id": "a1155", "year": 1999, "artist": "Tom Petty & the Heartbreakers", "title": "Echo", "genre": "Heartland Rock", "genreMacro": "Rock", "releaseDate": "1999-04-13"},
 {"id": "a1156", "year": 1999, "artist": "Tony Allen", "title": "Black Voices", "genre": "Afrobeat/Jazz", "genreMacro": "African", "releaseDate": "1999-12-14"},
 {"id": "a1157", "year": 1999, "artist": "Wilco", "title": "Summerteeth", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "1999-03-09"},
@@ -1718,31 +1800,63 @@ const BASE_ALBUMS = [
 {"id": "a1174", "year": 2000, "artist": "Radiohead", "title": "Kid A", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2000-10-02"},
 {"id": "a1175", "year": 2000, "artist": "Ryan Adams", "title": "Heartbreaker", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2000-09-05"},
 {"id": "a1176", "year": 2000, "artist": "The Avalanches", "title": "Since I Left You", "genre": "Sampledelia", "genreMacro": "Electronic", "releaseDate": "2000-11-27"},
+{"id": "u1790256750245", "year": 2000, "artist": "The New Pornographers", "title": "Mass Romantic", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2000-11-21"},
 {"id": "a1177", "year": 2000, "artist": "The White Stripes", "title": "De Stijl", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2000-06-20"},
 {"id": "a1178", "year": 2000, "artist": "Toni Braxton", "title": "The Heat", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2000-04-25"},
 {"id": "a1179", "year": 2000, "artist": "U2", "title": "All That You Can't Leave Behind", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "2000-10-30"},
+{"id": "u1790258336124", "year": 2001, "artist": "Aesop Rock", "title": "Labor Days", "genre": "Alternative Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-09-18"},
+{"id": "u1790258706396", "year": 2001, "artist": "Alicia Keys", "title": "Songs in A Minor", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2001-06-05"},
 {"id": "a1180", "year": 2001, "artist": "Animal Collective", "title": "Danse Manatee", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2001-07"},
 {"id": "a1181", "year": 2001, "artist": "Aphex Twin", "title": "Drukqs", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2001-10-22"},
+{"id": "u1790256554381", "year": 2001, "artist": "Autechre", "title": "Confield", "genre": "IDM", "genreMacro": "Electronic", "releaseDate": "2001-04-30"},
 {"id": "a1182", "year": 2001, "artist": "Bjork", "title": "Vespertine", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2001-08-27"},
+{"id": "u1790013008660", "year": 2001, "artist": "Blink-182", "title": "Take Off Your Pants and Jacket", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2001-06-12"},
 {"id": "a1183", "year": 2001, "artist": "Bob Dylan", "title": "Love and Theft", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "2001-09-11"},
+{"id": "u1790256272077", "year": 2001, "artist": "Bonnie \"Prince\" Billy", "title": "Ease Down the Road", "genre": "Country Rock", "genreMacro": "Rock", "releaseDate": "2001-03-19"},
+{"id": "u1790256519269", "year": 2001, "artist": "Cannibal Ox", "title": "The Cold Vein", "genre": "Abstract Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-05-15"},
+{"id": "u1790256786029", "year": 2001, "artist": "Circulatory System", "title": "Circulatory System", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-08-28"},
+{"id": "u1790258907428", "year": 2001, "artist": "Creed", "title": "Weathered", "genre": "Post Grunge", "genreMacro": "Rock", "releaseDate": "2001-11-20"},
 {"id": "a1184", "year": 2001, "artist": "Daft Punk", "title": "Alive 1997", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "1997-10-01"},
 {"id": "a1185", "year": 2001, "artist": "Daft Punk", "title": "Discovery", "genre": "Electronic", "genreMacro": "Electronic", "releaseDate": "2001-03-12"},
+{"id": "u1790258481044", "year": 2001, "artist": "Dave Matthews Band", "title": "Everyday", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "2001-02-27"},
 {"id": "a1186", "year": 2001, "artist": "Death Cab for Cutie", "title": "The Photo Album", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-10-09"},
+{"id": "u1790258643725", "year": 2001, "artist": "Destiny's Child", "title": "Survivor", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2001-04-24"},
+{"id": "u1790256976021", "year": 2001, "artist": "Destroyer", "title": "Streethawk: A Seduction", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-04-24"},
 {"id": "a1187", "year": 2001, "artist": "Femi Kuti", "title": "Fight to Win", "genre": "Afrobeat", "genreMacro": "African", "releaseDate": "2001-09-11"},
+{"id": "u1790256883252", "year": 2001, "artist": "Fennesz", "title": "Endless Summer", "genre": "Ambient", "genreMacro": "Electronic", "releaseDate": "2001-07-03"},
+{"id": "u1790256474725", "year": 2001, "artist": "Fugazi", "title": "The Argument", "genre": "Post Hardcore", "genreMacro": "Punk", "releaseDate": "2001-10-11"},
+{"id": "u1790258810388", "year": 2001, "artist": "Garth Brooks", "title": "Scarecrow", "genre": "Country", "genreMacro": "Country", "releaseDate": "2001-11-13"},
 {"id": "a1188", "year": 2001, "artist": "Gillian Welch", "title": "Time (The Revelator)", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2001-07-31"},
 {"id": "a1189", "year": 2001, "artist": "Gorillaz", "title": "Gorillaz", "genre": "Trip Hop", "genreMacro": "Electronic", "releaseDate": "2001-03-26"},
+{"id": "u1790012886301", "year": 2001, "artist": "Incubus", "title": "Morning View", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2001-10-23"},
+{"id": "u1790258384900", "year": 2001, "artist": "J-Live", "title": "The Best Part", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-05-01"},
 {"id": "a1190", "year": 2001, "artist": "Jay-Z", "title": "The Blueprint", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-09-11"},
+{"id": "u1790256498453", "year": 2001, "artist": "Jim O'Rourke", "title": "Insignificance", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-11-19"},
 {"id": "a1191", "year": 2001, "artist": "Junya Nakano, Masashi Hamauzu and Nobuo Uematsu", "title": "Final Fantasy X (Original Soundtrack)", "genre": "Ambient", "genreMacro": "Electronic", "releaseDate": "2001-08-01"},
+{"id": "u1790256695877", "year": 2001, "artist": "Les Savy Fav", "title": "Go Forth", "genre": "Art Punk", "genreMacro": "Punk", "releaseDate": "2001-10-02"},
+{"id": "u1790256911388", "year": 2001, "artist": "Low", "title": "Things We Lost in the Fire", "genre": "Slowcore", "genreMacro": "Pop", "releaseDate": "2001-02-06"},
+{"id": "u1790258267700", "year": 2001, "artist": "Missy Elliott", "title": "Miss E... So Addictive", "genre": "Pop Rap", "genreMacro": "Hip-Hop", "releaseDate": "2001-05-15"},
+{"id": "u1790258419643", "year": 2001, "artist": "Nas", "title": "Stillmatic", "genre": "East Coast Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "2001-12-18"},
+{"id": "u1790258166956", "year": 2001, "artist": "Patty Loveless", "title": "Mountain Soul", "genre": "Bluegrass", "genreMacro": "Country", "releaseDate": "2001-06-26"},
 {"id": "a1192", "year": 2001, "artist": "R.E.M.", "title": "Reveal", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2001-05-15"},
 {"id": "a1193", "year": 2001, "artist": "Radiohead", "title": "Amnesiac", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2001-05-30"},
+{"id": "u1790256539732", "year": 2001, "artist": "Stars of the Lid", "title": "The Tired Sounds of", "genre": "Ambient", "genreMacro": "Electronic", "releaseDate": "2001-10-29"},
+{"id": "u1790256204589", "year": 2001, "artist": "Stephen Malkmus", "title": "Stephen Malkmus and the Jicks", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-02-13"},
 {"id": "a1194", "year": 2001, "artist": "System of a Down", "title": "Toxicity", "genre": "Metal", "genreMacro": "Metal", "releaseDate": "2001-09-04"},
+{"id": "u1790256338725", "year": 2001, "artist": "Tenacious D", "title": "Tenacious D", "genre": "Comedy Rock", "genreMacro": "Rock", "releaseDate": "2001-09-25"},
 {"id": "a1195", "year": 2001, "artist": "The Angels of Light", "title": "How I Loved You", "genre": "Gothic Country", "genreMacro": "Country", "releaseDate": "2001-03-20"},
+{"id": "u1790256626668", "year": 2001, "artist": "The Beta Band", "title": "Hot Shots II", "genre": "Electronic Rock", "genreMacro": "Electronic", "releaseDate": "2001-07-16"},
+{"id": "u1790256663925", "year": 2001, "artist": "The Dismemberment Plan", "title": "Change", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-10-23"},
+{"id": "u1790256392901", "year": 2001, "artist": "The Microphones", "title": "\"The Glow\" Pt. 2", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2001-09-11"},
 {"id": "a1196", "year": 2001, "artist": "The National", "title": "The National", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-10-30"},
 {"id": "a1197", "year": 2001, "artist": "The Shins", "title": "Oh, Inverted World", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2001-06-19"},
 {"id": "a1198", "year": 2001, "artist": "The Strokes", "title": "Is This It", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2001-07-30"},
 {"id": "a1199", "year": 2001, "artist": "The White Stripes", "title": "White Blood Cells", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2001-07-03"},
 {"id": "a1200", "year": 2001, "artist": "Toni Braxton", "title": "Snowflakes", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2001-10-23"},
+{"id": "u1790256448540", "year": 2001, "artist": "Tool", "title": "Lateralus", "genre": "Alt Metal", "genreMacro": "Metal", "releaseDate": "2001-05-15"},
+{"id": "u1790256431717", "year": 2001, "artist": "Unwound", "title": "Leaves Turn Inside You", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-04-17"},
 {"id": "a1201", "year": 2001, "artist": "Weezer", "title": "Weezer (Green Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2001-05-15"},
+{"id": "u1790257304853", "year": 2001, "artist": "Yeah Yeah Yeahs", "title": "Yeah Yeah Yeahs", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2001-07-09"},
 {"id": "a1202", "year": 2002, "artist": "Beck", "title": "Sea Change", "genre": "Folk", "genreMacro": "Folk", "releaseDate": "2002-09-24"},
 {"id": "a1203", "year": 2002, "artist": "Belle and Sebastian", "title": "Storytelling", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2002-06-03"},
 {"id": "a1204", "year": 2002, "artist": "Brad Mehldau", "title": "Largo", "genre": "Jazz", "genreMacro": "Jazz", "releaseDate": "2002-09-17"},
@@ -1750,6 +1864,7 @@ const BASE_ALBUMS = [
 {"id": "a1206", "year": 2002, "artist": "Coldplay", "title": "A Rush of Blood to the Head", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2002-08-26"},
 {"id": "a1207", "year": 2002, "artist": "Counting Crows", "title": "Hard Candy", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "2002-07-09"},
 {"id": "a1208", "year": 2002, "artist": "Damien Rice", "title": "O", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2002-02-01"},
+{"id": "u1790258565828", "year": 2002, "artist": "Dave Matthews Band", "title": "Busted Stuff", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2002-07-16"},
 {"id": "a1209", "year": 2002, "artist": "Eminem", "title": "The Eminem Show", "genre": "Rap Rock", "genreMacro": "Hip-Hop", "releaseDate": "2002-05-26"},
 {"id": "a1210", "year": 2002, "artist": "George Harrison", "title": "Brainwashed", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "2002-11-19"},
 {"id": "a1211", "year": 2002, "artist": "Interpol", "title": "Turn on the Bright Lights", "genre": "Post-Punk Revival", "genreMacro": "Rock", "releaseDate": "2002-08-20"},
@@ -1769,11 +1884,14 @@ const BASE_ALBUMS = [
 {"id": "a1225", "year": 2002, "artist": "The Mountain Goats", "title": "All Hail West Texas", "genre": "Folk Rock", "genreMacro": "Rock", "releaseDate": "2002-02-19"},
 {"id": "a1226", "year": 2002, "artist": "The Mountain Goats", "title": "Tallahassee", "genre": "Folk Rock", "genreMacro": "Rock", "releaseDate": "2002-11-05"},
 {"id": "a1227", "year": 2002, "artist": "The Streets", "title": "Original Pirate Material", "genre": "UK Garage/Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2002-03-25"},
+{"id": "u1790257053429", "year": 2002, "artist": "Weezer", "title": "Maladroit", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2002-05-14"},
 {"id": "a1228", "year": 2002, "artist": "Wilco", "title": "Yankee Hotel Foxtrot", "genre": "Alt Country", "genreMacro": "Country", "releaseDate": "2002-04-23"},
 {"id": "a1229", "year": 2003, "artist": "50 Cent", "title": "Get Rich or Die Tryin'", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2003-02-06"},
+{"id": "u1790258718588", "year": 2003, "artist": "Alicia Keys", "title": "The Diary of Alicia Keys", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2003-12-02"},
 {"id": "a1230", "year": 2003, "artist": "Amy Winehouse", "title": "Frank", "genre": "Vocal Jazz", "genreMacro": "Jazz", "releaseDate": "2003-10-20"},
 {"id": "a1231", "year": 2003, "artist": "Belle and Sebastian", "title": "Dear Catastrophe Waitress", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2003-10-06"},
 {"id": "a1232", "year": 2003, "artist": "Beyonce", "title": "Dangerously in Love", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2003-06-20"},
+{"id": "u1790013017808", "year": 2003, "artist": "Blink-182", "title": "Blink-182", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2003-11-18"},
 {"id": "a1233", "year": 2003, "artist": "Broken Social Scene", "title": "You Forgot It in People", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2003-05-05"},
 {"id": "a1234", "year": 2003, "artist": "Death Cab for Cutie", "title": "Transantlaticism", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2003-10-07"},
 {"id": "a1235", "year": 2003, "artist": "Fall Out Boy", "title": "Take This to Your Grave", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2003-05-06"},
@@ -1791,13 +1909,16 @@ const BASE_ALBUMS = [
 {"id": "a1247", "year": 2003, "artist": "The Shins", "title": "Chutes Too Narrow", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2003-10-21"},
 {"id": "a1248", "year": 2003, "artist": "The Strokes", "title": "Room on Fire", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2003-10-28"},
 {"id": "a1249", "year": 2003, "artist": "The White Stripes", "title": "Elephant", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2003-04-01"},
+{"id": "u1790013168218", "year": 2003, "artist": "Third Eye Blind", "title": "Out of the Vein", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2003-05-13"},
 {"id": "a1250", "year": 2003, "artist": "Viktor Vaughn", "title": "Vaudeville Villain", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2003-09-16"},
 {"id": "a1251", "year": 2004, "artist": "Amadou & Mariam", "title": "Dimanche a Bamako", "genre": "Afropop", "genreMacro": "African", "releaseDate": "2004-09-13"},
 {"id": "a1252", "year": 2004, "artist": "Animal Collective", "title": "Sung Tongs", "genre": "Experimental Folk", "genreMacro": "Folk", "releaseDate": "2004-05-11"},
 {"id": "a1253", "year": 2004, "artist": "Arcade Fire", "title": "Funeral", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2004-09-14"},
 {"id": "a1254", "year": 2004, "artist": "Bjork", "title": "Medulla", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2004-08-30"},
+{"id": "u1790258663260", "year": 2004, "artist": "Destiny's Child", "title": "Destiny Fulfilled", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2004-11-15"},
 {"id": "a1255", "year": 2004, "artist": "Franz Ferdinand", "title": "Franz Ferdinand", "genre": "Post-Punk Revival", "genreMacro": "Rock", "releaseDate": "2004-02-09"},
 {"id": "a1256", "year": 2004, "artist": "Green Day", "title": "American Idiot", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2004-09-21"},
+{"id": "u1790012908899", "year": 2004, "artist": "Incubus", "title": "A Crow Left of the Murder...", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2004-02-03"},
 {"id": "a1257", "year": 2004, "artist": "Kanye West", "title": "The College Dropout", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2004-02-10"},
 {"id": "a1258", "year": 2004, "artist": "Madvillain", "title": "Madvillainy", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2004-03-23"},
 {"id": "a1259", "year": 2004, "artist": "Max Richter", "title": "The Blue Notebooks", "genre": "Contemporary Classical", "genreMacro": "Classical", "releaseDate": "2004-04-19"},
@@ -1829,6 +1950,7 @@ const BASE_ALBUMS = [
 {"id": "a1285", "year": 2005, "artist": "LCD Soundsystem", "title": "LCD Soundsystem", "genre": "Dance-Punk", "genreMacro": "Electronic", "releaseDate": "2005-01-24"},
 {"id": "a1286", "year": 2005, "artist": "M.I.A.", "title": "Arular", "genre": "Global Bass", "genreMacro": "Electronic", "releaseDate": "2005-04-19"},
 {"id": "a1287", "year": 2005, "artist": "Paramore", "title": "All We Know Is Falling", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2005-07-26"},
+{"id": "u1790013616990", "year": 2005, "artist": "Phish", "title": "New Year's Eve 1995", "genre": "Jam Band", "genreMacro": "Rock", "releaseDate": "2005-12-20"},
 {"id": "a1288", "year": 2005, "artist": "Queens of the Stone Age", "title": "Lullabies to Paralyze", "genre": "Alternative Rock", "genreMacro": "Rock", "releaseDate": "2005-03-22"},
 {"id": "a1289", "year": 2005, "artist": "Rihanna", "title": "Music of the Sun", "genre": "Dance Pop", "genreMacro": "Pop", "releaseDate": "2005-08-12"},
 {"id": "a1290", "year": 2005, "artist": "Sleater-Kinney", "title": "The Woods", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2005-05-24"},
@@ -1836,6 +1958,7 @@ const BASE_ALBUMS = [
 {"id": "a1292", "year": 2005, "artist": "The Mountain Goats", "title": "The Sunset Tree", "genre": "Folk Rock", "genreMacro": "Folk", "releaseDate": "2005-04-26"},
 {"id": "a1293", "year": 2005, "artist": "The National", "title": "Alligator", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2005-04-12"},
 {"id": "a1294", "year": 2005, "artist": "The White Stripes", "title": "Get Behind Me Satan", "genre": "Garage Rock", "genreMacro": "Rock", "releaseDate": "2005-06-07"},
+{"id": "u1790257063709", "year": 2005, "artist": "Weezer", "title": "Make Believe", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2005-05-10"},
 {"id": "a1295", "year": 2006, "artist": "Ali Farka Toure", "title": "Savane", "genre": "African Blues", "genreMacro": "World", "releaseDate": "2006-07-17"},
 {"id": "a1296", "year": 2006, "artist": "Amy Winehouse", "title": "Back to Black", "genre": "Pop Soul", "genreMacro": "Funk & Soul", "releaseDate": "2006-10-27"},
 {"id": "a1297", "year": 2006, "artist": "Arctic Monkeys", "title": "Whatever People Say I Am, That's What I'm Not", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2006-01-23"},
@@ -1932,6 +2055,7 @@ const BASE_ALBUMS = [
 {"id": "a1388", "year": 2008, "artist": "The Killers", "title": "Day & Age", "genre": "Pop Rock", "genreMacro": "Rock", "releaseDate": "2008-11-18"},
 {"id": "a1389", "year": 2008, "artist": "TV on the Radio", "title": "Dear Science", "genre": "Art Rock", "genreMacro": "Rock", "releaseDate": "2008-09-23"},
 {"id": "a1390", "year": 2008, "artist": "Vampire Weekend", "title": "Vampire Weekend", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2008-01-29"},
+{"id": "u1790257076277", "year": 2008, "artist": "Weezer", "title": "Weezer (Red Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2008-06-03"},
 {"id": "a1391", "year": 2009, "artist": "Alice in Chains", "title": "Black Gives Way to Blue", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "2009-09-29"},
 {"id": "a1392", "year": 2009, "artist": "Animal Collective", "title": "Fall Be Kind", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "2009-11-23"},
 {"id": "a1393", "year": 2009, "artist": "Animal Collective", "title": "Merriweather Post Pavilion", "genre": "Experimental Pop", "genreMacro": "Pop", "releaseDate": "2009-01-06"},
@@ -1952,6 +2076,7 @@ const BASE_ALBUMS = [
 {"id": "a1408", "year": 2009, "artist": "Sharon Van Etten", "title": "Because I Was In Love", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2009-05-26"},
 {"id": "a1409", "year": 2009, "artist": "the xx", "title": "xx", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2009-08-14"},
 {"id": "a1410", "year": 2009, "artist": "Tyler, the Creator", "title": "Bastard", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2009-12-25"},
+{"id": "u1790257085703", "year": 2009, "artist": "Weezer", "title": "Raditude", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2009-10-30"},
 {"id": "a1411", "year": 2009, "artist": "Yeah Yeah Yeahs", "title": "It's Blitz", "genre": "Synth Punk", "genreMacro": "Punk", "releaseDate": "2009-03-06"},
 {"id": "a1412", "year": 2010, "artist": "Arcade Fire", "title": "The Suburbs", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2010-08-03"},
 {"id": "a1413", "year": 2010, "artist": "Ariel Pink's Haunted Graffiti", "title": "Before Today", "genre": "Hypnagogic Pop", "genreMacro": "Pop", "releaseDate": "2010-06-08"},
@@ -2018,6 +2143,7 @@ const BASE_ALBUMS = [
 {"id": "a1474", "year": 2010, "artist": "Twin Shadow", "title": "Forget", "genre": "Chillwave", "genreMacro": "Electronic", "releaseDate": "2010-11-15"},
 {"id": "a1475", "year": 2010, "artist": "Vampire Weekend", "title": "Contra", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2010-01-11"},
 {"id": "a1476", "year": 2010, "artist": "Wavves", "title": "King of the Beach", "genre": "Surf Punk", "genreMacro": "Punk", "releaseDate": "2010-07-01"},
+{"id": "u1790257095301", "year": 2010, "artist": "Weezer", "title": "Hurley", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2010-09-14"},
 {"id": "a1477", "year": 2010, "artist": "Woods", "title": "At Echo Lake", "genre": "Freak Folk", "genreMacro": "Folk", "releaseDate": "2010-05-04"},
 {"id": "a1478", "year": 2010, "artist": "Yeasayer", "title": "Odd Blood", "genre": "Experimental Rock", "genreMacro": "Rock", "releaseDate": "2010-02-08"},
 {"id": "a1479", "year": 2011, "artist": "Adele", "title": "21", "genre": "Blue-Eyed Soul", "genreMacro": "Pop", "releaseDate": "2011-01-24"},
@@ -2025,6 +2151,7 @@ const BASE_ALBUMS = [
 {"id": "a1481", "year": 2011, "artist": "BADBADNOTGOOD", "title": "BBNG", "genre": "Alt Jazz", "genreMacro": "Jazz", "releaseDate": "2011-09-17"},
 {"id": "a1482", "year": 2011, "artist": "Beyonce", "title": "4", "genre": "Pop R&B", "genreMacro": "R&B", "releaseDate": "2011-06-28"},
 {"id": "a1483", "year": 2011, "artist": "Bjork", "title": "Biophilia", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2011-10-05"},
+{"id": "u1790013051901", "year": 2011, "artist": "Blink-182", "title": "Neighborhoods", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2011-09-27"},
 {"id": "a1484", "year": 2011, "artist": "Bon Iver", "title": "Bon Iver", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2011-06-17"},
 {"id": "a1485", "year": 2011, "artist": "Childish Gambino", "title": "Camp", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2011-11-15"},
 {"id": "a1486", "year": 2011, "artist": "Coldplay", "title": "Mylo Xyloto", "genre": "Pop Rock", "genreMacro": "Pop", "releaseDate": "2011-10-24"},
@@ -2126,6 +2253,7 @@ const BASE_ALBUMS = [
 {"id": "a1582", "year": 2014, "artist": "Swans", "title": "To Be Kind", "genre": "Experimental", "genreMacro": "Rock", "releaseDate": "2014-05-13"},
 {"id": "a1583", "year": 2014, "artist": "Taylor Swift", "title": "1989", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "2014-10-27"},
 {"id": "a1584", "year": 2014, "artist": "The War on Drugs", "title": "Lost in the Dream", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2014-03-18"},
+{"id": "u1790257109837", "year": 2014, "artist": "Weezer", "title": "Everything Will Be Alright in the End", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2014-10-07"},
 {"id": "a1585", "year": 2015, "artist": "Adele", "title": "25", "genre": "Blue-Eyed Soul", "genreMacro": "Pop", "releaseDate": "2015-11-20"},
 {"id": "a1586", "year": 2015, "artist": "Archy Marshall", "title": "A New Place 2 Drown", "genre": "Trip Hop", "genreMacro": "Electronic", "releaseDate": "2015-12-10"},
 {"id": "a1587", "year": 2015, "artist": "ASAP Rocky", "title": "At. Long. Last. ASAP", "genre": "Cloud Rap", "genreMacro": "Hip-Hop", "releaseDate": "2015-05-26"},
@@ -2185,6 +2313,7 @@ const BASE_ALBUMS = [
 {"id": "a1641", "year": 2016, "artist": "ASAP Mob", "title": "Cozy Tapes Vol. 1: Friends", "genre": "Cloud Rap", "genreMacro": "Hip-Hop", "releaseDate": "2016-10-31"},
 {"id": "a1642", "year": 2016, "artist": "Beyonce", "title": "Lemonade", "genre": "R&B/Pop", "genreMacro": "R&B", "releaseDate": "2016-04-23"},
 {"id": "a1643", "year": 2016, "artist": "Big Thief", "title": "Masterpiece", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2016-05-27"},
+{"id": "u1790013063386", "year": 2016, "artist": "Blink-182", "title": "California", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2016-07-01"},
 {"id": "a1644", "year": 2016, "artist": "Bon Iver", "title": "22, A Million", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2016-09-30"},
 {"id": "a1645", "year": 2016, "artist": "Car Seat Headrest", "title": "Teens of Denial", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2016-05-20"},
 {"id": "a1646", "year": 2016, "artist": "Childish Gambino", "title": "\"Awaken, My Love!\"", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2016-12-02"},
@@ -2204,6 +2333,7 @@ const BASE_ALBUMS = [
 {"id": "a1660", "year": 2016, "artist": "Run the Jewels", "title": "Run the Jewels 3", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2016-12-24"},
 {"id": "a1661", "year": 2016, "artist": "Stan Getz & Joao Gilberto", "title": "Getz/Gilberto '76", "genre": "Bossa Nova", "genreMacro": "Jazz", "releaseDate": "2016-02-19"},
 {"id": "a1662", "year": 2016, "artist": "The Weeknd", "title": "Starboy", "genre": "Alternative R&B", "genreMacro": "R&B", "releaseDate": "2016-11-25"},
+{"id": "u1790257127765", "year": 2016, "artist": "Weezer", "title": "Weezer (White Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2016-04-01"},
 {"id": "a1663", "year": 2017, "artist": "Alex G", "title": "Rocket", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2017-05-19"},
 {"id": "a1664", "year": 2017, "artist": "Arcade Fire", "title": "Everything Now", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2017-07-28"},
 {"id": "a1665", "year": 2017, "artist": "ASAP Mob", "title": "Cozy Tapes Vol. 2: Too Cozy", "genre": "Cloud Rap", "genreMacro": "Hip-Hop", "releaseDate": "2017-08-25"},
@@ -2230,6 +2360,7 @@ const BASE_ALBUMS = [
 {"id": "a1686", "year": 2017, "artist": "Tyler Childers", "title": "Purgatory", "genre": "Country", "genreMacro": "Country", "releaseDate": "2017-08-04"},
 {"id": "a1687", "year": 2017, "artist": "Tyler, the Creator", "title": "Flower Boy", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2017-07-21"},
 {"id": "a1688", "year": 2017, "artist": "Waxahatchee", "title": "Out in the Storm", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2017-07-14"},
+{"id": "u1790257141508", "year": 2017, "artist": "Weezer", "title": "Pacific Daydream", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2017-10-27"},
 {"id": "a1689", "year": 2018, "artist": "Against All Logic", "title": "2012-2017", "genre": "House", "genreMacro": "Electronic", "releaseDate": "2018-02-17"},
 {"id": "a1690", "year": 2018, "artist": "Alice in Chains", "title": "Rainier Fog", "genre": "Grunge", "genreMacro": "Rock", "releaseDate": "2018-08-24"},
 {"id": "a1691", "year": 2018, "artist": "Ambrose Akinmusire", "title": "Origami Harvest", "genre": "Chamber Jazz", "genreMacro": "Jazz", "releaseDate": "2018-10-12"},
@@ -2292,6 +2423,7 @@ const BASE_ALBUMS = [
 {"id": "a1748", "year": 2019, "artist": "Big Thief", "title": "Two Hands", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2019-10-11"},
 {"id": "a1749", "year": 2019, "artist": "Big Thief", "title": "U.F.O.F.", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2019-05-03"},
 {"id": "a1750", "year": 2019, "artist": "Billie Eilish", "title": "When We All Fall Asleep, Where Do We Go?", "genre": "Pop", "genreMacro": "Pop", "releaseDate": "2019-03-29"},
+{"id": "u1790013073858", "year": 2019, "artist": "Blink-182", "title": "Nine", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2019-09-20"},
 {"id": "a1751", "year": 2019, "artist": "Bon Iver", "title": "I, I", "genre": "Indie Folk", "genreMacro": "Folk", "releaseDate": "2019-08-09"},
 {"id": "a1752", "year": 2019, "artist": "Bruce Springsteen", "title": "Western Stars", "genre": "Rock", "genreMacro": "Rock", "releaseDate": "2019-06-14"},
 {"id": "a1753", "year": 2019, "artist": "Burna Boy", "title": "African Giant", "genre": "Afrobeats", "genreMacro": "African", "releaseDate": "2019-07-26"},
@@ -2310,6 +2442,8 @@ const BASE_ALBUMS = [
 {"id": "a1766", "year": 2019, "artist": "Tyler Childers", "title": "Country Squire", "genre": "Country", "genreMacro": "Country", "releaseDate": "2019-08-02"},
 {"id": "a1767", "year": 2019, "artist": "Tyler, the Creator", "title": "Igor", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2019-05-17"},
 {"id": "a1768", "year": 2019, "artist": "Vampire Weekend", "title": "Father of the Bride", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2019-05-03"},
+{"id": "u1790257167445", "year": 2019, "artist": "Weezer", "title": "Weezer (Black Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2019-03-01"},
+{"id": "u1790257153558", "year": 2019, "artist": "Weezer", "title": "Weezer (Teal Album)", "genre": "Alt Rock", "genreMacro": "Rock", "releaseDate": "2019-01-24"},
 {"id": "a1769", "year": 2019, "artist": "Weyes Blood", "title": "Titanic Rising", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2019-04-05"},
 {"id": "a1770", "year": 2020, "artist": "Bad Bunny", "title": "El Ultimo Tour del Mundo", "genre": "Reggaeton", "genreMacro": "Latin", "releaseDate": "2020-11-27"},
 {"id": "a1771", "year": 2020, "artist": "Bad Bunny", "title": "YHLQMDLG", "genre": "Reggaeton", "genreMacro": "Latin", "releaseDate": "2020-02-29"},
@@ -2373,6 +2507,7 @@ const BASE_ALBUMS = [
 {"id": "a1829", "year": 2022, "artist": "Drake / 21 Savage", "title": "Her Loss", "genre": "Pop Rap", "genreMacro": "Hip-Hop", "releaseDate": "2022-11-04"},
 {"id": "a1830", "year": 2022, "artist": "Kendrick Lamar", "title": "Mr. Morale & the Big Steppers", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2022-05-13"},
 {"id": "a1831", "year": 2022, "artist": "Koffee", "title": "Gifted", "genre": "Reggae/Dancehall", "genreMacro": "Reggae", "releaseDate": "2022-03-25"},
+{"id": "u1790013791848", "year": 2022, "artist": "Little Simz", "title": "No Thank You", "genre": "Hip-Hop", "genreMacro": "Hip-Hop", "releaseDate": "2022-12-12"},
 {"id": "a1832", "year": 2022, "artist": "Mitski", "title": "Laurel Hell", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2022-02-04"},
 {"id": "a1833", "year": 2022, "artist": "MJ Lenderman", "title": "Boat Songs", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2022-04-29"},
 {"id": "a1834", "year": 2022, "artist": "Natalia Lafourcade", "title": "De Todas las Flores", "genre": "Singer-Songwriter", "genreMacro": "Folk", "releaseDate": "2022-10-20"},
@@ -2394,6 +2529,7 @@ const BASE_ALBUMS = [
 {"id": "a1850", "year": 2023, "artist": "Belle and Sebastian", "title": "Late Developers", "genre": "Indie Pop", "genreMacro": "Pop", "releaseDate": "2023-01-13"},
 {"id": "a1851", "year": 2023, "artist": "billy woods / Kenny Segal", "title": "Maps", "genre": "Alternative Hip Hop", "genreMacro": "Hip-Hop", "releaseDate": "2023-05-05"},
 {"id": "a1852", "year": 2023, "artist": "Black Country, New Road", "title": "Live at Bush Hall", "genre": "Post-Rock", "genreMacro": "Rock", "releaseDate": "2023-02-20"},
+{"id": "u1790013084727", "year": 2023, "artist": "Blink-182", "title": "One More Time...", "genre": "Pop Punk", "genreMacro": "Punk", "releaseDate": "2023-10-20"},
 {"id": "a1853", "year": 2023, "artist": "Blue Lake", "title": "Sun Arcs", "genre": "Pastoral", "genreMacro": "Electronic", "releaseDate": "2023-06-23"},
 {"id": "a1854", "year": 2023, "artist": "boygenius", "title": "the record", "genre": "Indie Rock", "genreMacro": "Rock", "releaseDate": "2023-03-31"},
 {"id": "a1855", "year": 2023, "artist": "Caroline Polachek", "title": "Desire, I Want to Turn into You", "genre": "Art Pop", "genreMacro": "Pop", "releaseDate": "2023-02-14"},
@@ -2536,11 +2672,11 @@ function save(key, val){
   if(SYNCED_KEYS.includes(key)) scheduleCloudPush();
 }
 
-// The base album database below was regenerated on 2026-08-13, folding in everything that used
+// The base album database below was regenerated on 2026-09-28, folding in everything that used
 // to live as local overrides/additions. Bumping this version makes returning browsers discard
 // their now-redundant local overrides/additions/deletions (once) so nothing shows up twice —
 // the listening log is never touched by this.
-const ALBUMS_VERSION = 5;
+const ALBUMS_VERSION = 6;
 let albumsJustMigrated = localStorage.getItem('dial_albums_version') !== String(ALBUMS_VERSION);
 if(albumsJustMigrated){
   localStorage.setItem('almanac_overrides', '{}');
@@ -2604,6 +2740,15 @@ function drawAlbum(excludeCurrent){
   save('almanac_day', day);
   resetForm();
   renderSpin();
+}
+
+function changeYear(){
+  const years = Object.keys(albumsByYear).map(Number).filter(y => y !== day.year && albumsByYear[y].length > 0);
+  if(years.length === 0) return;
+  day.year = years[Math.floor(Math.random() * years.length)];
+  day.shown = [];
+  day.current = null;
+  drawAlbum(false);
 }
 
 function currentAlbum(){
@@ -2689,6 +2834,7 @@ function renderSpin(){
     </div>
     <div class="btn-row">
       <button class="ghost-btn" onclick="drawAlbum(true)">Different record from ${day.year}</button>
+      <button class="ghost-btn" onclick="changeYear()">Change year</button>
     </div>
   `;
   reviewCard.style.display = 'block';
@@ -2719,106 +2865,6 @@ function saveEntry(){
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-/* ---------- On-demand draw ---------- */
-
-let odCurrentId = null;
-let odRating = 0;
-
-function populateOnDemandSelects(){
-  const decadeSel = document.getElementById('od-decade');
-  const genreSel = document.getElementById('od-genre');
-  if(decadeSel.options.length <= 1) decadeSel.innerHTML = '<option value="">Any decade</option>' + decadeOptionsHtml();
-  if(genreSel.options.length <= 1) genreSel.innerHTML = '<option value="">Any category</option>' + genreOptionsHtml();
-}
-
-function drawOnDemand(keepFilters){
-  const decade = document.getElementById('od-decade').value;
-  const genre = document.getElementById('od-genre').value;
-  let pool = ALBUMS.filter(a => {
-    if(decade && Math.floor(a.year/10)*10 !== parseInt(decade,10)) return false;
-    if(genre && a.genreMacro !== genre) return false;
-    return true;
-  });
-  if(keepFilters && odCurrentId && pool.length > 1){
-    pool = pool.filter(a => a.id !== odCurrentId);
-  }
-  if(pool.length === 0){
-    odCurrentId = null;
-    document.getElementById('od-result').innerHTML = '<div class="no-entries">Nothing matches those filters yet.</div>';
-    return;
-  }
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  odCurrentId = pick.id;
-  renderOdResult(pick);
-}
-
-function renderOdResult(album){
-  odRating = 0;
-  const subTag = (album.genre && album.genre !== album.genreMacro) ? `<span class="subgenre-tag">${escapeHtml(album.genre)}</span>` : '';
-  const dateLabel = formatDate(album.releaseDate) || (album.year + ' (exact date not on file)');
-  document.getElementById('od-result').innerHTML = `
-    <div class="record" style="margin-top:18px;">
-      <div class="record-art" data-album="${album.id}"></div>
-      <div class="record-meta">
-        <span class="genre-tag">${escapeHtml(album.genreMacro)}</span>${subTag}
-        <h2>${escapeHtml(album.title)}</h2>
-        <p class="artist">${escapeHtml(album.artist)}</p>
-        <p class="release-date">Released ${dateLabel}</p>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="ghost-btn" onclick="drawOnDemand(true)">Different pick</button>
-    </div>
-    <div style="margin-top:18px;">
-      <label style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin-bottom:8px;">Rating</label>
-      <div class="stars" id="od-stars">
-        <button type="button" onclick="setOdRating(1)" data-v="1">&#9733;</button>
-        <button type="button" onclick="setOdRating(2)" data-v="2">&#9733;</button>
-        <button type="button" onclick="setOdRating(3)" data-v="3">&#9733;</button>
-        <button type="button" onclick="setOdRating(4)" data-v="4">&#9733;</button>
-        <button type="button" onclick="setOdRating(5)" data-v="5">&#9733;</button>
-      </div>
-      <label for="od-fav" style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin:14px 0 8px;">Favorite track(s)</label>
-      <input type="text" id="od-fav" placeholder="e.g. track 3, the title track...">
-      <label for="od-review" style="display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);margin:14px 0 8px;">Notes / short review</label>
-      <textarea id="od-review" placeholder="What stood out?"></textarea>
-      <div class="btn-row">
-        <button class="big-btn" onclick="saveOdEntry()">Log this listen</button>
-      </div>
-      <div class="saved-note" id="od-saved">Logged &mdash; check the Listening Log tab.</div>
-    </div>
-  `;
-  fetchCoverArt(album);
-}
-
-function setOdRating(v){
-  odRating = v;
-  document.querySelectorAll('#od-stars button').forEach(b => {
-    b.classList.toggle('filled', Number(b.dataset.v) <= v);
-  });
-}
-
-function saveOdEntry(){
-  const album = ALBUMS.find(a => a.id === odCurrentId);
-  if(!album) return;
-  const entry = {
-    id: 'e' + Date.now(),
-    dateListened: todayStr(),
-    year: album.year,
-    albumId: album.id,
-    artist: album.artist,
-    title: album.title,
-    genre: album.genre,
-    genreMacro: album.genreMacro,
-    rating: odRating,
-    favTracks: document.getElementById('od-fav').value.trim(),
-    review: document.getElementById('od-review').value.trim()
-  };
-  log.unshift(entry);
-  save('almanac_log', log);
-  document.getElementById('od-saved').classList.add('show');
 }
 
 function showTab(which){
@@ -3224,15 +3270,6 @@ function populateYearFilter(){
 }
 
 let editingId = null;
-let placeholderFilterOn = false;
-
-function togglePlaceholderFilter(){
-  placeholderFilterOn = !placeholderFilterOn;
-  const btn = document.getElementById('placeholder-filter-btn');
-  btn.classList.toggle('active', placeholderFilterOn);
-  btn.textContent = placeholderFilterOn ? 'Showing possible placeholders \u2014 click to clear' : 'Show possible placeholder dates (day = 1st)';
-  renderEditList();
-}
 
 function renderEditList(){
   populateYearFilter();
@@ -3248,7 +3285,6 @@ function renderEditList(){
     if(decadeFilter && Math.floor(a.year/10)*10 !== parseInt(decadeFilter,10)) return false;
     if(genreFilter && a.genreMacro !== genreFilter) return false;
     if(search && !(a.artist + ' ' + a.title).toLowerCase().includes(search)) return false;
-    if(placeholderFilterOn && !(a.releaseDate && a.releaseDate.length === 10 && a.releaseDate.slice(8,10) === '01')) return false;
     return true;
   });
 
@@ -3263,7 +3299,7 @@ function renderEditList(){
 
   const listEl = document.getElementById('edit-list');
   if(items.length === 0){
-    listEl.innerHTML = '<div class="no-entries">' + (placeholderFilterOn ? 'No day-1st dates found \u2014 nice and clean.' : 'No albums match.') + '</div>';
+    listEl.innerHTML = '<div class="no-entries">' + 'No albums match.' + '</div>';
     return;
   }
 
@@ -3293,16 +3329,75 @@ function renderEditList(){
       <div class="row-item" data-id="${a.id}">
         <span class="yr">${a.year}</span>
         <span>${escapeHtml(a.artist)}${isCustom ? '<span class="edit-badge">edited</span>' : ''}</span>
-        <span>${escapeHtml(a.title)}</span>
+        <span>${escapeHtml(a.title)}${justLoggedId===a.id ? '<span class="logged-badge">logged &#10003;</span>' : ''}</span>
         <span class="gn">${escapeHtml(a.genreMacro)}</span>
         <span class="gn" style="color:var(--ink-dim);">${escapeHtml(a.genre)}</span>
         <span class="rd">${formatDate(a.releaseDate) || '&mdash;'}</span>
         <div class="row-actions">
+          <button class="small-btn${loggingId===a.id?' active':''}" onclick="toggleEditLog('${a.id}')">Log</button>
           <button class="small-btn" onclick="editingId='${a.id}'; renderEditList();">Edit</button>
           <button class="small-btn danger" onclick="deleteAlbum('${a.id}')">Delete</button>
         </div>
-      </div>`;
+      </div>${loggingId===a.id ? editLogFormHtml(a) : ''}`;
   }).join('');
+}
+
+let loggingId = null, justLoggedId = null, editLogRating = 0;
+
+function toggleEditLog(id){
+  loggingId = (loggingId === id) ? null : id;
+  editLogRating = 0;
+  justLoggedId = null;
+  renderEditList();
+}
+
+function editLogFormHtml(a){
+  const lab = 'display:block;font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);';
+  return `
+    <div class="edit-log-form">
+      <label style="${lab}margin-bottom:8px;">Rating</label>
+      <div class="stars" id="el-stars">
+        ${[1,2,3,4,5].map(v => `<button type="button" data-v="${v}" onclick="setEditLogRating(${v})">&#9733;</button>`).join('')}
+      </div>
+      <label for="el-fav" style="${lab}margin:14px 0 8px;">Favorite track(s)</label>
+      <input type="text" id="el-fav" placeholder="e.g. track 3, the title track...">
+      <label for="el-review" style="${lab}margin:14px 0 8px;">Notes / short review</label>
+      <textarea id="el-review" placeholder="What stood out?"></textarea>
+      <div class="btn-row">
+        <button class="big-btn" onclick="saveEditLogEntry('${a.id}')">Log this listen</button>
+        <button class="ghost-btn" onclick="toggleEditLog('${a.id}')">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function setEditLogRating(v){
+  editLogRating = v;
+  document.querySelectorAll('#el-stars button').forEach(b => {
+    b.classList.toggle('filled', Number(b.dataset.v) <= v);
+  });
+}
+
+function saveEditLogEntry(id){
+  const album = ALBUMS.find(a => a.id === id);
+  if(!album) return;
+  log.unshift({
+    id: 'e' + Date.now(),
+    dateListened: todayStr(),
+    year: album.year,
+    albumId: album.id,
+    artist: album.artist,
+    title: album.title,
+    genre: album.genre,
+    genreMacro: album.genreMacro,
+    rating: editLogRating,
+    favTracks: document.getElementById('el-fav').value.trim(),
+    review: document.getElementById('el-review').value.trim()
+  });
+  save('almanac_log', log);
+  loggingId = null;
+  justLoggedId = id;
+  editLogRating = 0;
+  renderEditList();
 }
 
 function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
@@ -3589,7 +3684,6 @@ function pushStateToCloud(){
 })();
 
 // init
-populateOnDemandSelects();
 initCalendarState();
 if(!day.current || !ALBUMS.find(a=>a.id===day.current)) drawAlbum(false);
 else renderSpin();
